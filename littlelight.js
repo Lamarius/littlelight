@@ -1,0 +1,41 @@
+/*
+  A bot for my Destiny 2 discord server
+ */
+
+// Import modules
+const Discord = require('discord.js');
+const schedule = require('node-schedule-tz');
+
+// Create an instance of a Discord client
+const client = new Discord.Client();
+
+// The bot token
+const token = 'MzU4NjU4MDI1NjAwNDUwNTYw.DJ7qkg.-sbS4JC2e0rvwsubuKm1bYxdQZA'
+
+// The ready event is vital, it means that your bot will only start reacting to information
+// from Discord _after_ ready is emitted
+client.on('ready', () => {
+  console.log('Little-light ready to fight!');
+  var rule = new schedule.RecurrenceRule();
+  rule.dayOfWeek = 5;
+  rule.hour = 9;
+  rule.minute = 0;
+  rule.tz = 'America/Chicago' // Central time
+
+  var j = schedule.scheduleJob(rule, function() {
+    client.channels.find('id', '358655605084258304').send('@here Xur is up! You can find him at https://xur.party/');
+  });
+});
+
+// Create an event listener for messages
+// client.on('message', message => {
+//   // If the message is "ping"
+//   if (message.content === 'ping') {
+//     // Send "pong" to the same channel
+//     client.channels.find('id', '358656841971924992').send('test');
+//     message.channel.send('@here pong');
+//   }
+// });
+
+// Log our bot in
+client.login(token);
