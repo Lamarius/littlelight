@@ -2,7 +2,6 @@
  A helper class for the bungieplatformapi for Destiny 2 api calls
  */
 
-//var XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 var https = require('https');
 var querystring = require('querystring');
 
