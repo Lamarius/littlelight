@@ -33,13 +33,9 @@ client.on('message', message => {
   // If the message is "test"
   if (message.content === 'test') {
     // Get test api call
-<<<<<<< HEAD
     bungienetplatform.testCall(function(result) {
       message.channel.send(result);
     });
-=======
-    bungienetplatform.testCall();
->>>>>>> 3f9d0ac4b6389d68ec00b3cfe5ae4826996e5949
   }
 });
 
