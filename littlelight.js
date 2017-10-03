@@ -5,6 +5,7 @@
 // Import modules
 const Discord = require('discord.js');
 const schedule = require('node-schedule-tz');
+const bungienetplatform = require('./bungienetplatformapihelper.js');
 
 // Create an instance of a Discord client
 const client = new Discord.Client();
@@ -28,14 +29,13 @@ client.on('ready', () => {
 });
 
 // Create an event listener for messages
-// client.on('message', message => {
-//   // If the message is "ping"
-//   if (message.content === 'ping') {
-//     // Send "pong" to the same channel
-//     client.channels.find('id', '358656841971924992').send('test');
-//     message.channel.send('@here pong');
-//   }
-// });
+client.on('message', message => {
+  // If the message is "test"
+  if (message.content === 'test') {
+    // Get test api call
+    bungienetplatform.testCall();
+  }
+});
 
 // Log our bot in
 client.login(token);
