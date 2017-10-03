@@ -35,13 +35,14 @@ function apiTestCall(callback) {
 
   var req = https.request(options, function(res) {
     res.setEncoding('utf8');
-    let body = ""
+    let body = "";
+
     res.on('data', function(data) {
       body += data;
     });
+    
     res.on("end", function() {
       body = JSON.parse(body);
-      console.log(body.Response.data.inventoryItem.itemName);
       return callback(body.Response.data.inventoryItem.itemName);
     });
   });
