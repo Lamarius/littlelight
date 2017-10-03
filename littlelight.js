@@ -11,7 +11,7 @@ const bungienetplatform = require('./bungienetplatformapihelper.js');
 const client = new Discord.Client();
 
 // The bot token
-const token = 'MzU4NjU4MDI1NjAwNDUwNTYw.DJ7qkg.-sbS4JC2e0rvwsubuKm1bYxdQZA'
+const token = 'MzU4NjU4MDI1NjAwNDUwNTYw.DJ7qkg.-sbS4JC2e0rvwsubuKm1bYxdQZA';
 
 // The ready event is vital, it means that your bot will only start reacting to information
 // from Discord _after_ ready is emitted
@@ -31,11 +31,15 @@ client.on('ready', () => {
 // Create an event listener for messages
 client.on('message', message => {
   // If the message is "test"
-  if (message.content === 'test') {
+  if (message.content === '!ll test') {
     // Get test api call
     bungienetplatform.testCall(function(result) {
       message.channel.send(result);
     });
+  } else if (message.content === '!ll clan leaderboards') {
+    bungienetplatform.clanleaderboards(function(result) {
+      message.channel.send(result);
+    })
   }
 });
 
