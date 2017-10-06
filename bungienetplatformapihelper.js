@@ -9,15 +9,53 @@ const apiKey = "92c2d53d688d4513830a695b8e2d5393";
 const clanId = 1286254
 
 module.exports = {
-  clanleaderboards: function (callback) {
+  clanLeaderboards: function (callback) {
     apiClanLeaderboardCall(function(result) {
       return callback(result);
     });
   },
 
-  testCall: function (callback) {
-    apiTestCall(function(result) {
-      return callback(result);
+  clanRewardProgress: function (callback) {
+    apiClanWeeklyRewardStateCall(function(result) {
+      // Format result into a nice little embed
+      var nightfall, trials, raid, pvp;
+      result.milestone.forEach(function(entry) {
+        if (result.definition[entry.rewardEntryHash].rewardEntryIdentifier === 'nightfall') {
+          nightfall = (entry.earned ? ":ballot_box_with_check: " : ":x: ") 
+                    + result.definition[entry.rewardEntryHash].displayProperties.description;
+        } else if (result.definition[entry.rewardEntryHash].rewardEntryIdentifier === 'trials') {
+          trials = (entry.earned ? ":ballot_box_with_check: " : ":x: ") 
+                 + result.definition[entry.rewardEntryHash].displayProperties.description;
+        } else if (result.definition[entry.rewardEntryHash].rewardEntryIdentifier === 'raid') {
+          raid = (entry.earned ? ":ballot_box_with_check: " : ":x: ") 
+               + result.definition[entry.rewardEntryHash].displayProperties.description;
+        } else if (result.definition[entry.rewardEntryHash].rewardEntryIdentifier === 'pvp') {
+          pvp = (entry.earned ? ":ballot_box_with_check: " : ":x: ") 
+              + result.definition[entry.rewardEntryHash].displayProperties.description;
+        }
+      });
+
+      var embed = {};
+      embed.color = 3447003;
+      embed.title = "Clan Weekly Reward Progress";
+      embed.description = "Rewards earned by clan activity.";
+      embed.fields = [{
+        name: "Nightfall",
+        value: nightfall
+      },
+      {
+        name: "Trials",
+        value: trials
+      },
+      {
+        name: "Raid",
+        value: raid
+      },
+      {
+        name: "PvP",
+        value: pvp
+      }];
+      return callback(embed);
     });
   }
 }
@@ -56,7 +94,7 @@ function apiCall(path, method, callback) {
 }
 
 function apiClanLeaderboardCall(callback) {
-  apiCall("/Platform/Destiny2/Stats/Leaderboards/Clans/1286254/", "GET", function(data) {
+  apiCall("/Platform/Destiny2/Stats/Leaderboards/Clans/" + clanId + "/", "GET", function(data) {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
@@ -64,11 +102,20 @@ function apiClanLeaderboardCall(callback) {
   });
 }
 
-function apiTestCall(callback) {
-  apiCall("/d1/platform/Destiny/Manifest/InventoryItem/1274330687/", "GET", function(data) {
+function apiClanWeeklyRewardStateCall(callback) {
+  var clanMilestone;
+  apiCall("/Platform/Destiny2/Clan/" + clanId + "/WeeklyRewardState/", "GET", function(data) {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
-    return callback(data.Response.data.inventoryItem.itemName);
+    clanMilestone = data.Response;
+    var definition;
+    apiCall("/Platform/Destiny2/Manifest/DestinyMilestoneDefinition/" + clanMilestone.milestoneHash + "/", "GET", function(data) {
+      if (data.ErrorCode != 1) {
+        return callback(data.Message);
+      }
+      definition = data.Response;
+      return callback({milestone: clanMilestone.rewards[0].entries, definition: definition.rewards[clanMilestone.rewards[0].rewardCategoryHash].rewardEntries});
+    });
   });
 }

@@ -30,18 +30,31 @@ client.on('ready', () => {
 
 // Create an event listener for messages
 client.on('message', message => {
-  // If the message is "test"
-  if (message.content === '!ll test') {
-    // Get test api call
-    bungienetplatform.testCall(function(result) {
-      message.channel.send(result);
+  var channel = message.channel;
+
+  if (message.content === '!ll clan rewards') {
+    // Get clan weekly reward progress
+    bungienetplatform.clanRewardProgress(function(result) {
+      sendMessage(channel, {embed: result});
     });
   } else if (message.content === '!ll clan leaderboards') {
-    bungienetplatform.clanleaderboards(function(result) {
-      message.channel.send(result);
-    })
+    // Get clan leaderboards (currently unavailable)
+    bungienetplatform.clanLeaderboards(function(result) {
+      sendMessage(channel, result);
+    });
   }
 });
+
+function sendMessage(channel, content, options) {
+  if (!content && !options) {
+    console.log('Ignoring empty message.');
+    return;
+  }
+  channel.send(content, options)
+    .then(message => message.embeds.length > 0
+          ? console.log(`Sent embedded message regarding ${message.embeds[0].title}`)
+          : console.log(`Sent message: ${message.content}`));
+}
 
 // Log our bot in
 client.login(token);
