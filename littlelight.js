@@ -23,7 +23,7 @@ client.on('ready', () => {
   rule.minute = 0;
   rule.tz = 'America/Chicago' // Central time
 
-  var j = schedule.scheduleJob(rule, function() {
+  var j = schedule.scheduleJob(rule, () => {
     client.channels.find('id', '358655605084258304').send('@here Xur is up! You can find him at https://xur.party/');
   });
 });
@@ -34,12 +34,16 @@ client.on('message', message => {
 
   if (message.content === '!ll clan rewards') {
     // Get clan weekly reward progress
-    bungienetplatform.clanRewardProgress(function(result) {
-      sendMessage(channel, {embed: result});
+    bungienetplatform.clanRewardProgress((result) => {
+      sendMessage(channel, result);
     });
   } else if (message.content === '!ll clan leaderboards') {
     // Get clan leaderboards (currently unavailable)
-    bungienetplatform.clanLeaderboards(function(result) {
+    bungienetplatform.clanLeaderboards((result) => {
+      sendMessage(channel, result);
+    });
+  } else if (message.content === '!ll events') {
+    bungienetplatform.events((result) => {
       sendMessage(channel, result);
     });
   }
@@ -51,7 +55,7 @@ function sendMessage(channel, content, options) {
     return;
   }
   channel.send(content, options)
-    .then(message => message.embeds.length > 0
+    .then((message) => message.embeds.length > 0
           ? console.log(`Sent embedded message regarding ${message.embeds[0].title}`)
           : console.log(`Sent message: ${message.content}`));
 }
