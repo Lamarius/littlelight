@@ -8,6 +8,8 @@ const util = require('util');
 
 const apiKey = "92c2d53d688d4513830a695b8e2d5393";
 const clanId = 1286254
+const membershipType = 2;
+const myMembershipId = "4611686018428555102";
 
 module.exports = {
   clanLeaderboards: (callback) => {
@@ -62,29 +64,30 @@ module.exports = {
   },
 
   events: (callback) => {
-    apiPublicMilestonesCall((result) => {
-      console.log(util.inspect(result, false, null));
-      for (var milestone in result) {
-        if (result.hasOwnProperty(milestone)) {
-          apiPublicMilestoneContentCall(milestone, (result) => {
-            // 3205009061: milestoneHash of first faction rally, might be same hash for later rallies
-            if (result && result.about.includes('Faction Rally')) {
-              var endOfDesc = result.about.indexOf('<');
-              var description = result.about.substring(0, endOfDesc !== -1 ? endOfDesc : result.about.length);
+    apiEventsCall((result) => {
+      if (result.length === 0) {
+        return callback("There are currently no events active (to my knowledge)");
+      } else {
+        result.forEach((event) => {
+          if (typeof event === 'string') {
+            callback(event);
+          } else {
+            apiEventDetailsCall(event.type, event.id, (result) => {
+              var endOfDesc = result.eventContent.about.indexOf('<');
+              var description = endOfDesc === -1 ? result.eventContent.about : result.eventContent.about.substring(0, endOfDesc);
               var embed = {
                 color: 3447003,
-                title: "Faction Rallies Are Live!",
-                url: "https://www.bungie.net/en/Help/Article/46312",
+                title: result.title,
                 description: description,
                 fields: [{
                   name: "Tips",
-                  value: result.tips.join('\n')
+                  value: result.eventContent.tips.join('\n')
                 }]
-              };
-              return callback({embed: embed});
-            }
-          });
-        }
+              }
+              callback({embed: embed});
+            });
+          }
+        });
       }
     });
   }
@@ -150,25 +153,30 @@ function apiClanWeeklyRewardStateCall(callback) {
   });
 }
 
-function apiPublicMilestonesCall(callback) {
-  apiCall("/Platform/Destiny2/Milestones/", "GET", (data) => {
-    if (data.ErrorCode != 1) {
-      return callback(data.Message);
-    }
-    return callback(data.Response);
-  });
-}
-
-function apiPublicMilestoneContentCall(milestone, callback) {
-  apiCall("/Platform/Destiny2/Milestones/" + milestone + "/Content/", "GET", (data) => {
+function apiEventsCall(callback) {
+  apiCall("/Platform/Trending/Categories/LiveEvents/0/", "GET", (data) => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
     if (data.Response) {
-      console.log(milestone + ": " + data.Response.about);
-    } else {
-      console.log(milestone + ": " + undefined);
+      events = [];
+      data.Response.results.forEach((event) => {
+        if (event.displayName.indexOf("Iron") === 0) {
+          events.push({type: event.entityType, id: event.identifier});
+        }
+      });
+      return callback(events);
     }
-    return callback(data.Response);
   });
+}
+
+function apiEventDetailsCall(type, id, callback) {
+  apiCall("/Platform/Trending/Details/" + type + "/" + id + "/", "GET", (data) => {
+    if (data.ErrorCode != 1) {
+      return callback(data.Message);
+    }
+    if (data.Response) {
+      return callback(data.Response.destinyRitual);
+    }
+  })
 }
