@@ -46,6 +46,10 @@ client.on('message', message => {
     bungienetplatform.events((result) => {
       sendMessage(channel, result);
     });
+  } else if (message.content === '!ll updates') {
+    bungienetplatform.updates((result) => {
+      sendMessage(channel, result);
+    });
   }
 });
 

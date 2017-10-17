@@ -2,6 +2,9 @@
  A helper class for the bungieplatformapi for Destiny 2 api calls
  */
 
+// TODO: turn callbacks to promises
+
+const Discord = require('discord.js');
 const https = require('https');
 const querystring = require('querystring');
 const util = require('util');
@@ -72,23 +75,66 @@ module.exports = {
           if (typeof event === 'string') {
             callback(event);
           } else {
+            var img = "https://www.bungie.net" + event.image;
             apiEventDetailsCall(event.type, event.id, (result) => {
-              var endOfDesc = result.eventContent.about.indexOf('<');
-              var description = endOfDesc === -1 ? result.eventContent.about : result.eventContent.about.substring(0, endOfDesc);
-              var embed = {
-                color: 3447003,
-                title: result.title,
-                description: description,
-                fields: [{
-                  name: "Tips",
-                  value: result.eventContent.tips.join('\n')
-                }]
-              }
+              var re = new RegExp('(.*?)<.*<a href="(.*?)"');
+              var description = re.exec(result.eventContent.about);
+              var embed = new Discord.RichEmbed()
+                .setTitle(result.title)
+                .setColor(3447003)
+                .setThumbnail(img)
+                .setDescription(description[1] ? description[1] : description[0])
+                .setURL(description[2])
+                .addField("Tips", result.eventContent.tips.join('\n\n'));
+
               callback({embed: embed});
             });
           }
         });
       }
+    });
+  },
+
+  updates: (callback) => {
+    apiUpdatesCall(false, (result) => {
+      if (result.length === 0) {
+        return callback("There are no updates... wait what? There was a day one update! What the heck!?");
+      } else {
+        var embed = new Discord.RichEmbed()
+          .setTitle("Recent Updates")
+          .setColor(3447003)
+          .setDescription("The most recent update and subsequent hotfixes are as follows: ");
+
+        updatesRemaining = result.length;
+        updates = [];
+        result.forEach((update) => {
+          if (typeof update === 'string') {
+            callback(event);
+          } else {
+            console.log(update.identifier);
+            apiUpdateDetailsCall(update.entityType, update.identifier, (result) => {
+              updates.push({date: result.creationDate, title: result.properties.Title, content: htmlToMarkdown(result.properties.Content)});
+              //embed.addField(result.Title, result.Content.replace(/<br>/g, "\n").substring(0, 1024));
+              updatesRemaining--;
+              if (updatesRemaining <= 0) {
+                updates.sort((a, b) => {
+                  return new Date(b.date) - new Date(a.date);
+                });
+                updates.forEach((update) => {
+                  embed.addField(update.title, update.content.substring(0, 1024));
+                });
+                return callback({embed: embed});
+              }
+            });
+          }
+        });
+      }
+    });
+  },
+
+  lastUpdate: (callback) => {
+    apiUpdatesCall(true, (result) => {
+
     });
   }
 }
@@ -162,7 +208,7 @@ function apiEventsCall(callback) {
       events = [];
       data.Response.results.forEach((event) => {
         if (event.displayName.indexOf("Iron") === 0) {
-          events.push({type: event.entityType, id: event.identifier});
+          events.push({type: event.entityType, id: event.identifier, image: event.image});
         }
       });
       return callback(events);
@@ -179,4 +225,52 @@ function apiEventDetailsCall(type, id, callback) {
       return callback(data.Response.destinyRitual);
     }
   })
+}
+
+function apiUpdatesCall(onlyLatest, callback) {
+  apiCall("/Platform/Trending/Categories/Updates/0/", "GET", (data) => {
+    if (data.ErrorCode != 1) {
+      return callback(data.Message);
+    }
+    if (data.Response) {
+      if (onlyLatest) {
+        return callback(data.Response.results[0]);
+      } else {
+        var results = data.Response.results;
+        var length = data.Response.results.length
+        var updates = [];
+        for (i = 0; i < length; i++) {
+          updates.push(results[i]);
+          if (results[i].displayName.indexOf("Update") !== -1) {
+            break;
+          }
+        }
+        return callback(updates);
+      }
+    }
+  });
+}
+
+function apiUpdateDetailsCall(type, id, callback) {
+  apiCall("/Platform/Trending/Details/" + type + "/" + id + "/", "GET", (data) => {
+    if (data.ErrorCode != 1) {
+      return callback(data.Message);
+    }
+    if (data.Response) {
+      return callback(data.Response.news.article);
+    }
+  });
+}
+
+function htmlToMarkdown(message) {
+  //<big><br></big>, <li> and <br> to \n
+  message = message.replace(/(<b><big>)?<br>(<\/big><\/b>)?|(<li>|<\/ul>)/g, "\n");
+  //<b> and </b> to **
+  message = message.replace(/<\/?b>/g, "**");
+  //<big> and </big> to *
+  message = message.replace(/<\/?big>/g, "*");
+  //replace all other tags and &nbsp; with nothing
+  message = message.replace(/(<\/?.*?>|&nbsp;)/g, "");
+  console.log(message);
+  return message;
 }
