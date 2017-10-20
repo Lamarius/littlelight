@@ -100,11 +100,6 @@ module.exports = {
       if (result.length === 0) {
         return callback("There are no updates... wait what? There was a day one update! What the heck!?");
       } else {
-        var embed = new Discord.RichEmbed()
-          .setTitle("Recent Updates")
-          .setColor(3447003)
-          .setDescription("The most recent update and subsequent hotfixes are as follows: ");
-
         updatesRemaining = result.length;
         updates = [];
         result.forEach((update) => {
@@ -113,17 +108,24 @@ module.exports = {
           } else {
             console.log(update.identifier);
             apiUpdateDetailsCall(update.entityType, update.identifier, (result) => {
-              updates.push({date: result.creationDate, title: result.properties.Title, content: htmlToMarkdown(result.properties.Content)});
-              //embed.addField(result.Title, result.Content.replace(/<br>/g, "\n").substring(0, 1024));
+              updates.push({
+                date: result.creationDate, 
+                content: result.properties.Content, 
+                image: "https://www.bungie.net" + result.properties.FrontPageBanner, 
+                url: "https://www.bungie.net" + update.link
+              });
+
               updatesRemaining--;
               if (updatesRemaining <= 0) {
                 updates.sort((a, b) => {
                   return new Date(b.date) - new Date(a.date);
                 });
+
                 updates.forEach((update) => {
-                  embed.addField(update.title, update.content.substring(0, 1024));
+                  var embed = getEmbedFromHTML(update);
+                  console.log(embed);
+                  return callback({embed: embed});
                 });
-                return callback({embed: embed});
               }
             });
           }
@@ -262,15 +264,22 @@ function apiUpdateDetailsCall(type, id, callback) {
   });
 }
 
-function htmlToMarkdown(message) {
-  //<big><br></big>, <li> and <br> to \n
-  message = message.replace(/(<b><big>)?<br>(<\/big><\/b>)?|(<li>|<\/ul>)/g, "\n");
-  //<b> and </b> to **
-  message = message.replace(/<\/?b>/g, "**");
-  //<big> and </big> to *
-  message = message.replace(/<\/?big>/g, "*");
-  //replace all other tags and &nbsp; with nothing
-  message = message.replace(/(<\/?.*?>|&nbsp;)/g, "");
-  console.log(message);
-  return message;
+function getEmbedFromHTML(update) {
+  var fields = update.content.replace(/<span.*?>/g, "<big>")
+    .replace(/<\/span>/g, "</big>")
+    .replace(/<\/?blockquote.*?>|(<\/?div.*?>|(<big>(<b><br><\/b>|<br>)<\/big>|(<\/?span.*?>|(<br>|(&nbsp;|<\/big><\/b><b><big>)))))/g, "")
+    .split("<big>");
+
+  var embed = new Discord.RichEmbed()
+    .setTitle(fields[0].replace(/<\/?.*?>/g, ""))
+    .setColor(3447003)
+    .setImage(update.image)
+    .setURL(update.url);
+
+  for (i = 1; i < fields.length; i++) {
+    var field = fields[i].split("</big>");
+    embed.addField(field[0].replace(/<\/?.*?>/g, ""), field[1]);
+  }
+
+  return embed;
 }
