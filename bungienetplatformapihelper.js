@@ -106,7 +106,6 @@ module.exports = {
           if (typeof update === 'string') {
             callback(event);
           } else {
-            console.log(update.identifier);
             apiUpdateDetailsCall(update.entityType, update.identifier, (result) => {
               updates.push({
                 date: result.creationDate, 
@@ -264,7 +263,8 @@ function apiUpdateDetailsCall(type, id, callback) {
 }
 
 function getEmbedFromHTML(update) {
-  var fields = update.content.replace(/<span.*?>/g, "<big>")
+  var fields = update.content
+    .replace(/<span.*?>/g, "<big>")
     .replace(/<\/span>/g, "</big>")
     .replace(/&amp;/g, "&")
     .replace(/&nbsp;/g, " ")
@@ -283,11 +283,7 @@ function getEmbedFromHTML(update) {
     var field = fields[i].split("</big>");
     var title = field[0].replace(/<\/?.*?>/g, "");
     var value = "";
-    var values = field[1].replace(/<b><\/b>/g, "")
-      .replace(/^<\/b>/g, "")
-      .replace(/<b>$/g, "")
-      .replace(/<\/li>/g, "")
-      .split("<li>");
+    var values = field[1].replace(/<b><\/b>|(^<\/b>|(<b>$|<\/li>))/g, "").split("<li>");
 
     var indentLength = -1;
     values.forEach((bulletPoint) => {
@@ -297,9 +293,7 @@ function getEmbedFromHTML(update) {
         indentLength--;
       }
 
-      bulletPoint = bulletPoint.replace(/<\/?ul>/g, "")
-        .replace(/<\/?i>/g, "*")
-        .replace(/<\/?b>/g, "**");
+      bulletPoint = bulletPoint.replace(/<\/?ul>/g, "").replace(/<\/?i>/g, "*").replace(/<\/?b>/g, "**");
 
       if (bulletPoint.length === 0) {
         return;
