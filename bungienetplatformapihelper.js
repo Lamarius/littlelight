@@ -123,7 +123,6 @@ module.exports = {
 
                 updates.forEach((update) => {
                   var embed = getEmbedFromHTML(update);
-                  console.log(embed);
                   return callback({embed: embed});
                 });
               }
@@ -267,7 +266,11 @@ function apiUpdateDetailsCall(type, id, callback) {
 function getEmbedFromHTML(update) {
   var fields = update.content.replace(/<span.*?>/g, "<big>")
     .replace(/<\/span>/g, "</big>")
-    .replace(/<\/?blockquote.*?>|(<\/?div.*?>|(<big>(<b><br><\/b>|<br>)<\/big>|(<\/?span.*?>|(<br>|(&nbsp;|<\/big><\/b><b><big>)))))/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&nbsp;/g, " ")
+    .replace(/\s<\/i>/g, "</i> ")
+    .replace(/>\s</g, "><")
+    .replace(/<\/?blockquote.*?>|(<\/?div.*?>|(<big>(<b><br><\/b>|<br>)<\/big>|(<\/?span.*?>|(<br>|<\/big><\/b><b><big>))))/g, "")
     .split("<big>");
 
   var embed = new Discord.RichEmbed()
@@ -278,7 +281,45 @@ function getEmbedFromHTML(update) {
 
   for (i = 1; i < fields.length; i++) {
     var field = fields[i].split("</big>");
-    embed.addField(field[0].replace(/<\/?.*?>/g, ""), field[1]);
+    var title = field[0].replace(/<\/?.*?>/g, "");
+    var value = "";
+    var values = field[1].replace(/<b><\/b>/g, "")
+      .replace(/^<\/b>/g, "")
+      .replace(/<b>$/g, "")
+      .replace(/<\/li>/g, "")
+      .split("<li>");
+
+    var indentLength = -1;
+    values.forEach((bulletPoint) => {
+      if (bulletPoint.endsWith("<ul>")) {
+        indentLength++;
+      } else if (bulletPoint.endsWith("</ul>")) {
+        indentLength--;
+      }
+
+      bulletPoint = bulletPoint.replace(/<\/?ul>/g, "")
+        .replace(/<\/?i>/g, "*")
+        .replace(/<\/?b>/g, "**");
+
+      if (bulletPoint.length === 0) {
+        return;
+      } else if (bulletPoint.startsWith("***")) {
+        value = value + bulletPoint + "\n";
+      } else if (bulletPoint.endsWith("***")) {
+        bulletPoint = bulletPoint.split("***");
+        value = value + "•  " + bulletPoint[0] + "\n***" + bulletPoint[1] + "***" + "\n";
+        indentLength--;
+      } else {
+        value = value + "•  " + bulletPoint + "\n";
+      }
+
+      for (k = 0; k < indentLength; k++) {
+        value = value + "\t";
+      }
+    });
+
+    value = value.replace(/(^•\s\s\/n|\/n$)/g, "");
+    embed.addField(title, value);
   }
 
   return embed;
