@@ -6,6 +6,7 @@
 const Discord = require('discord.js');
 const schedule = require('node-schedule-tz');
 const bungienetplatform = require('./bungienetplatformapihelper.js');
+const help = require('./help.js');
 
 // Create an instance of a Discord client
 const client = new Discord.Client();
@@ -34,6 +35,9 @@ client.on('ready', () => {
       sendMessage(client.channels.find('id', '358655605084258304'), result);
     });
   });
+
+  // Set bot to show help command
+  client.user.setGame('!ll help');
 });
 
 // Create an event listener for messages
@@ -68,6 +72,9 @@ client.on('message', message => {
       bungienetplatform.updates(params[1], (result) => {
         sendMessage(channel, result);
       });
+    } else if (params[0] === 'help') {
+      // Get help
+      sendMessage(channel, help.getHelp(params[1]));
     }
   }
 });
