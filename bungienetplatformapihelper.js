@@ -14,6 +14,8 @@ const clanId = 1286254
 const membershipType = 2;
 const myMembershipId = "4611686018428555102";
 
+var currentVersion = '';
+
 module.exports = {
   clanLeaderboards: (callback) => {
     apiClanLeaderboardCall((result) => {
@@ -104,6 +106,7 @@ module.exports = {
         updates = [];
         result.forEach((update) => {
           if (typeof update === 'string') {
+            updatesRemaining--;
             callback(event);
           } else {
             apiUpdateDetailsCall(update.entityType, update.identifier, (result) => {
@@ -132,9 +135,32 @@ module.exports = {
     });
   },
 
-  lastUpdate: (callback) => {
-    apiUpdatesCall(true, (result) => {
-
+  newUpdate: (callback) => {
+    apiUpdatesCall(1, (result) => {
+      update = result[0];
+      if (update.length !== 0 && typeof update !== 'string') {
+        if (currentVersion === '' || currentVersion === update.identifier) {
+          currentVersion = update.identifier;
+          return callback(null);
+        } else if (currentVersion !== update.identifier) {
+          currentVersion = update.identifier;
+          apiUpdateDetailsCall(update.entityType, update.identifier, (result) => {
+            if (typeof result === 'string') {
+              console.log(result);
+              return callback(null);
+            } else {
+              var details = {
+                date: result.creationDate,
+                content: result.properties.Content,
+                image: "https://www.bungie.net" + result.properties.FrontPageBanner,
+                url: "https://www.bungie.net" + update.link
+              };
+              var embed = getEmbedFromHTML(details);
+              return callback({content: "@here Destiny 2 has just been updated!", embed: embed});
+            }            
+          });
+        }
+      }
     });
   }
 }
@@ -227,14 +253,15 @@ function apiEventDetailsCall(type, id, callback) {
   })
 }
 
-function apiUpdatesCall(onlyLatest, callback) {
+function apiUpdatesCall(numOfUpdates, callback) {
   apiCall("/Platform/Trending/Categories/Updates/0/", "GET", (data) => {
+    var updatesFound = 0;
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
     if (data.Response) {
-      if (onlyLatest) {
-        return callback(data.Response.results[0]);
+      if (numOfUpdates) {
+        return callback(data.Response.results.slice(0, numOfUpdates));
       } else {
         var results = data.Response.results;
         var length = data.Response.results.length

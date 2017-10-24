@@ -23,8 +23,16 @@ client.on('ready', () => {
   rule.minute = 0;
   rule.tz = 'America/Chicago' // Central time
 
-  var j = schedule.scheduleJob(rule, () => {
-    client.channels.find('id', '358655605084258304').send('@here Xur is up! You can find him at https://xur.party/');
+  // Annouce Xur every Friday at 9 am Central
+  var xurSchedule = schedule.scheduleJob(rule, () => {
+    sendMessage(client.channels.find('id', '358655605084258304'), '@here Xur is up! You can find him at https://xur.party/');
+  });
+
+  // Check every 2 hours to see if the game has updated
+  var updateSchedule = schedule.scheduleJob('0 */2 * * *', () => {
+    bungienetplatform.newUpdate((result) => {
+      sendMessage(client.channels.find('id', '358655605084258304'), result);
+    });
   });
 });
 
@@ -43,10 +51,12 @@ client.on('message', message => {
       sendMessage(channel, result);
     });
   } else if (message.content === '!ll events') {
+    // Get currently active events
     bungienetplatform.events((result) => {
       sendMessage(channel, result);
     });
   } else if (message.content === '!ll updates') {
+    // Get the latest updates to Destiny 2
     bungienetplatform.updates((result) => {
       sendMessage(channel, result);
     });
