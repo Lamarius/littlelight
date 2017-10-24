@@ -287,6 +287,10 @@ function apiUpdateDetailsCall(type, id, callback) {
 }
 
 function getEmbedFromHTML(update) {
+  // This was fun... No, really, it was *suuuuper* fun...
+  // We're removing all tags we don't care about, reformatting some of the tags that screw us up 
+  // later, replacing ampersand code with the actual characters, and splitting the content up by
+  // <big> tags to get all of the fields
   var fields = update.content
     .replace(/<span.*?>/g, "<big>")
     .replace(/<\/span>/g, "</big>")
@@ -303,14 +307,15 @@ function getEmbedFromHTML(update) {
     .setImage(update.image)
     .setURL(update.url);
 
+  // Basically doing the same thing we did initially, but on a per field basis
   for (i = 1; i < fields.length; i++) {
     var field = fields[i].split("</big>");
     var title = field[0].replace(/<\/?.*?>/g, "");
     var value = "";
-    var values = field[1].replace(/<b><\/b>|(^<\/b>|(<b>$|<\/li>))/g, "").split("<li>");
-
+    var bulletPoints = field[1].replace(/<b><\/b>|(^<\/b>|(<b>$|<\/li>))/g, "").split("<li>");
     var indentLength = -1;
-    values.forEach((bulletPoint) => {
+
+    bulletPoints.forEach((bulletPoint) => {
       if (bulletPoint.endsWith("<ul>")) {
         indentLength++;
       } else if (bulletPoint.endsWith("</ul>")) {
@@ -320,22 +325,30 @@ function getEmbedFromHTML(update) {
       bulletPoint = bulletPoint.replace(/<\/?ul>/g, "").replace(/<\/?i>/g, "*").replace(/<\/?b>/g, "**");
 
       if (bulletPoint.length === 0) {
+        // Sometimes, after formatting, we get an empty bullet point, so just ignore it
         return;
       } else if (bulletPoint.startsWith("***")) {
-        value = value + bulletPoint + "\n";
+        // Sometimes our bullet point subheaders bolded and italicized instead of starting with a 
+        // bullet, so let's reflect that 
+        value += bulletPoint + "\n";
       } else if (bulletPoint.endsWith("***")) {
+        // Sometimes, when the next subheader is bolded and italicized, it ends up on the end of the
+        // previous bullet point instead of being its own bullet point, let's fix that
         bulletPoint = bulletPoint.split("***");
-        value = value + "•  " + bulletPoint[0] + "\n***" + bulletPoint[1] + "***" + "\n";
+        value += "•  " + bulletPoint[0] + "\n***" + bulletPoint[1] + "***" + "\n";
         indentLength--;
       } else {
-        value = value + "•  " + bulletPoint + "\n";
+        // Most of the time it's this
+        value += "•  " + bulletPoint + "\n";
       }
 
-      for (k = 0; k < indentLength; k++) {
-        value = value + "\t";
+      // Add a tab for each level the patch notes are indented
+      for (j = 0; j < indentLength; j++) {
+        value += "\t";
       }
     });
 
+    // Sometimes our embeds start or end with just an empty bullet point, let's trim those
     value = value.replace(/(^•\s\s\/n|\/n$)/g, "");
     embed.addField(title, value);
   }
