@@ -95,8 +95,12 @@ module.exports = {
     });
   },
 
-  updates: (callback) => {
-    apiUpdatesCall(false, (result) => {
+  updates: (numOfUpdates, callback) => {
+    if (numOfUpdates < 1) {
+      numOfUpdates = null;
+    }
+
+    apiUpdatesCall(numOfUpdates, (result) => {
       if (result.length === 0) {
         return callback("There are no updates... wait what? There was a day one update! What the heck!?");
       } else {
@@ -257,12 +261,20 @@ function apiUpdatesCall(numOfUpdates, callback) {
       return callback(data.Message);
     }
     if (data.Response) {
-      if (numOfUpdates) {
-        return callback(data.Response.results.slice(0, numOfUpdates));
+      var results = data.Response.results;
+      var length = data.Response.results.length
+      var updates = [];
+
+      if (numOfUpdates && !isNaN(numOfUpdates)) {
+        for (i = 0; i < numOfUpdates; i++) {
+          if (results[i].displayName.includes("Destiny 2")) {
+            updates.push(results[i]);
+          } else {
+            break;
+          }
+        }
+        return callback(updates);
       } else {
-        var results = data.Response.results;
-        var length = data.Response.results.length
-        var updates = [];
         for (i = 0; i < length; i++) {
           updates.push(results[i]);
           if (results[i].displayName.indexOf("Update") !== -1) {
@@ -298,7 +310,7 @@ function getEmbedFromHTML(update) {
     .replace(/&nbsp;/g, " ")
     .replace(/\s<\/i>/g, "</i> ")
     .replace(/>\s</g, "><")
-    .replace(/<\/?blockquote.*?>|(<\/?div.*?>|(<big>(<b><br><\/b>|<br>)<\/big>|(<\/?span.*?>|(<br>|<\/big><\/b><b><big>))))/g, "")
+    .replace(/<\/?blockquote.*?>|<\/?div.*?>|<big>(<b><br><\/b>|<br>)<\/big>|<\/?span.*?>|<br>|<\/big><\/b><b><big>|<a.*?>|<\/a>/g, "")
     .split("<big>");
 
   var embed = new Discord.RichEmbed()
@@ -312,7 +324,8 @@ function getEmbedFromHTML(update) {
     var field = fields[i].split("</big>");
     var title = field[0].replace(/<\/?.*?>/g, "");
     var value = "";
-    var bulletPoints = field[1].replace(/<b><\/b>|(^<\/b>|(<b>$|<\/li>))/g, "").split("<li>");
+    if (field.length === 1) console.log(fields);
+    var bulletPoints = field[1].replace(/<b><\/b>|^<\/b>|<b>$|<\/li>/g, "").split("<li>");
     var indentLength = -1;
 
     bulletPoints.forEach((bulletPoint) => {

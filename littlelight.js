@@ -38,28 +38,37 @@ client.on('ready', () => {
 
 // Create an event listener for messages
 client.on('message', message => {
+  var rgx = /^(!ll)\s*(.*)/g;
+  var match = rgx.exec(message.content);
   var channel = message.channel;
 
-  if (message.content === '!ll clan rewards') {
-    // Get clan weekly reward progress
-    bungienetplatform.clanRewardProgress((result) => {
-      sendMessage(channel, result);
-    });
-  } else if (message.content === '!ll clan leaderboards') {
-    // Get clan leaderboards (currently unavailable)
-    bungienetplatform.clanLeaderboards((result) => {
-      sendMessage(channel, result);
-    });
-  } else if (message.content === '!ll events') {
-    // Get currently active events
-    bungienetplatform.events((result) => {
-      sendMessage(channel, result);
-    });
-  } else if (message.content === '!ll updates') {
-    // Get the latest updates to Destiny 2
-    bungienetplatform.updates((result) => {
-      sendMessage(channel, result);
-    });
+  if (match && match.length > 1 ) {
+    var params = match[2].split(/\s+/g);
+
+    if (match[1] === 'clan') {
+      // Clan commands
+      if (params[0] === 'rewards') {
+        // Get clan weekly reward progress
+        bungienetplatform.clanRewardProgress((result) => {
+          sendMessage(channel, result);
+        });
+      } else if (params[0] === 'leaderboards') {
+        // Get clan leaderboards (currently unavailable)
+        bungienetplatform.clanLeaderboards((result) => {
+          sendMessage(channel, result);
+        });
+      }
+    } else if (params[0] === 'events') {
+      // Get currently active events
+      bungienetplatform.events((result) => {
+        sendMessage(channel, result);
+      });
+    } else if (params[0] === 'updates') {
+      // Get the latest updates to Destiny 2
+      bungienetplatform.updates(params[1], (result) => {
+        sendMessage(channel, result);
+      });
+    }
   }
 });
 
