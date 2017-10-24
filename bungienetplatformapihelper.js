@@ -255,7 +255,6 @@ function apiEventDetailsCall(type, id, callback) {
 
 function apiUpdatesCall(numOfUpdates, callback) {
   apiCall("/Platform/Trending/Categories/Updates/0/", "GET", (data) => {
-    var updatesFound = 0;
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
