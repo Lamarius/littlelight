@@ -11,8 +11,6 @@ const util = require('util');
 
 const apiKey = "92c2d53d688d4513830a695b8e2d5393";
 const clanId = 1286254
-const membershipType = 2;
-const myMembershipId = "4611686018428555102";
 
 var currentVersion = '';
 
@@ -173,7 +171,7 @@ function apiCall(path, method, callback) {
   var options = {
     host: "www.bungie.net",
     port: 443,
-    path: path,
+    path: "/Platform" + path,
     method: method,
     headers: headers
   }
@@ -199,7 +197,7 @@ function apiCall(path, method, callback) {
 }
 
 function apiClanLeaderboardCall(callback) {
-  apiCall("/Platform/Destiny2/Stats/Leaderboards/Clans/" + clanId + "/", "GET", (data) => {
+  apiCall("/Destiny2/Stats/Leaderboards/Clans/" + clanId + "/", "GET", (data) => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
@@ -209,13 +207,13 @@ function apiClanLeaderboardCall(callback) {
 
 function apiClanWeeklyRewardStateCall(callback) {
   var clanMilestone;
-  apiCall("/Platform/Destiny2/Clan/" + clanId + "/WeeklyRewardState/", "GET", (data) => {
+  apiCall("/Destiny2/Clan/" + clanId + "/WeeklyRewardState/", "GET", (data) => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
     clanMilestone = data.Response;
     var definition;
-    apiCall("/Platform/Destiny2/Manifest/DestinyMilestoneDefinition/" + clanMilestone.milestoneHash + "/", "GET", (data) => {
+    apiCall("/Destiny2/Manifest/DestinyMilestoneDefinition/" + clanMilestone.milestoneHash + "/", "GET", (data) => {
       if (data.ErrorCode != 1) {
         return callback(data.Message);
       }
@@ -226,7 +224,7 @@ function apiClanWeeklyRewardStateCall(callback) {
 }
 
 function apiEventsCall(callback) {
-  apiCall("/Platform/Trending/Categories/LiveEvents/0/", "GET", (data) => {
+  apiCall("/Trending/Categories/LiveEvents/0/", "GET", (data) => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
@@ -243,7 +241,7 @@ function apiEventsCall(callback) {
 }
 
 function apiEventDetailsCall(type, id, callback) {
-  apiCall("/Platform/Trending/Details/" + type + "/" + id + "/", "GET", (data) => {
+  apiCall("/Trending/Details/" + type + "/" + id + "/", "GET", (data) => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
@@ -254,7 +252,7 @@ function apiEventDetailsCall(type, id, callback) {
 }
 
 function apiUpdatesCall(numOfUpdates, callback) {
-  apiCall("/Platform/Trending/Categories/Updates/0/", "GET", (data) => {
+  apiCall("/Trending/Categories/Updates/0/", "GET", (data) => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
@@ -278,7 +276,7 @@ function apiUpdatesCall(numOfUpdates, callback) {
 }
 
 function apiUpdateDetailsCall(type, id, callback) {
-  apiCall("/Platform/Trending/Details/" + type + "/" + id + "/", "GET", (data) => {
+  apiCall("/Trending/Details/" + type + "/" + id + "/", "GET", (data) => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
