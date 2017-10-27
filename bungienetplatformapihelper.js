@@ -341,8 +341,8 @@ function getEmbedFromHTML(update) {
         // Sometimes, after formatting, we get an empty bullet point, so just ignore it
         return;
       } else if (bulletPoint.startsWith("***")) {
-        // Sometimes our bullet point subheaders bolded and italicized instead of starting with a 
-        // bullet, so let's reflect that 
+        // Sometimes our bullet point's subheaders are bolded and italicized instead of starting 
+        // with a bullet, so we do that instead
         value += bulletPoint + "\n";
       } else if (bulletPoint.endsWith("***")) {
         // Sometimes, when the next subheader is bolded and italicized, it ends up on the end of the
@@ -361,7 +361,7 @@ function getEmbedFromHTML(update) {
       }
     });
 
-    // Sometimes our embeds start or end with just an empty bullet point, let's trim those
+    // Embed field values will begin with an empty bullet point and end with a new line, trim those
     value = value.replace(/(^•\s\s\/n|\/n$)/g, "");
     embed.addField(title, value);
   }
