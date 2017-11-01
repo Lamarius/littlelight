@@ -33,7 +33,7 @@ client.on('ready', () => {
   var updateSchedule = schedule.scheduleJob('0 */2 * * *', () => {
     bungienetplatform.newUpdate((result) => {
       if (result !== null) {
-        sendMessage(client.channels.find('id', '358656841971924992'), result.content, result.embed);
+        sendMessage(client.channels.find('id', '358655605084258304'), result.content, result.embed);
       }
     });
   });
