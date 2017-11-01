@@ -3,16 +3,16 @@
  */
 
 // Import modules
-const Discord = require('discord.js');
-const schedule = require('node-schedule-tz');
-const bungienetplatform = require('./bungienetplatformapihelper.js');
-const help = require('./help.js');
+var Discord = require('discord.js');
+var schedule = require('node-schedule-tz');
+var bungienetplatform = require('./bungienetplatformapihelper.js');
+var help = require('./help.js');
 
 // Create an instance of a Discord client
-const client = new Discord.Client();
+var client = new Discord.Client();
 
 // The bot token
-const token = 'MzU4NjU4MDI1NjAwNDUwNTYw.DJ7qkg.-sbS4JC2e0rvwsubuKm1bYxdQZA';
+var token = 'MzU4NjU4MDI1NjAwNDUwNTYw.DJ7qkg.-sbS4JC2e0rvwsubuKm1bYxdQZA';
 
 // The ready event is vital, it means that your bot will only start reacting to information
 // from Discord _after_ ready is emitted
@@ -32,7 +32,9 @@ client.on('ready', () => {
   // Check every 2 hours to see if the game has updated
   var updateSchedule = schedule.scheduleJob('0 */2 * * *', () => {
     bungienetplatform.newUpdate((result) => {
-      sendMessage(client.channels.find('id', '358655605084258304'), result);
+      if (result !== null) {
+        sendMessage(client.channels.find('id', '358656841971924992'), result.content, result.embed);
+      }
     });
   });
 

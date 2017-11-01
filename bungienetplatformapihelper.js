@@ -4,13 +4,13 @@
 
 // TODO: turn callbacks to promises
 
-const Discord = require('discord.js');
-const https = require('https');
-const querystring = require('querystring');
-const util = require('util');
+var Discord = require('discord.js');
+var https = require('https');
+var querystring = require('querystring');
+var util = require('util');
 
-const apiKey = "92c2d53d688d4513830a695b8e2d5393";
-const clanId = 1286254
+var apiKey = "92c2d53d688d4513830a695b8e2d5393";
+var clanId = 1286254
 
 var currentVersion = '';
 
