@@ -18,14 +18,14 @@ var token = 'MzU4NjU4MDI1NjAwNDUwNTYw.DJ7qkg.-sbS4JC2e0rvwsubuKm1bYxdQZA';
 // from Discord _after_ ready is emitted
 client.on('ready', () => {
   console.log('Little-light ready to fight!');
-  var rule = new schedule.RecurrenceRule();
-  rule.dayOfWeek = 5;
-  rule.hour = 9;
-  rule.minute = 0;
-  rule.tz = 'America/Chicago' // Central time
+  var xurRecurrenceRule = new schedule.RecurrenceRule();
+  xurRecurrenceRule.dayOfWeek = 5;
+  xurRecurrenceRule.hour = 9;
+  xurRecurrenceRule.minute = 0;
+  xurRecurrenceRule.tz = 'America/Chicago' // Central time
 
   // Annouce Xur every Friday at 9 am Central
-  var xurSchedule = schedule.scheduleJob(rule, () => {
+  var xurSchedule = schedule.scheduleJob(xurRecurrenceRule, () => {
     sendMessage(client.channels.find('id', '358655605084258304'), '@here Xur is up! You can find him at https://xur.party/');
   });
 

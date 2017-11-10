@@ -235,7 +235,8 @@ function apiEventsCall(callback) {
     if (data.Response) {
       events = [];
       data.Response.results.forEach((event) => {
-        if (event.displayName.indexOf("Iron") === 0) {
+        if (event.displayName.indexOf("Iron Banner") === 0 || 
+            event.displayName.indexOf("Faction Rally") === 0) {
           events.push({type: event.entityType, id: event.identifier, image: event.image});
         }
       });
