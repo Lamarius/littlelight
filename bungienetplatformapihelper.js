@@ -314,6 +314,11 @@ function getEmbedFromHTML(update) {
     .replace(/<\/?blockquote.*?>|<\/?div.*?>|<big>(<b><br><\/b>|<br>)<\/big>|<\/?span.*?>|<br>|<\/big><\/b><b><big>|<a.*?>|<\/a>/g, "")
     .split("<big>");
 
+  // In this instance, bungie decided not to use the big tag or the span tag, so I had to put it in there
+  if (fields.length === 1) {
+    fields = fields[0].replace(/<\/b><b><\/b>/g, "<big>").replace(/<ul><li>/g, "</big><ul><li>").split("<big>");
+  }
+
   var embed = new Discord.RichEmbed()
     .setTitle(fields[0].replace(/<\/?.*?>/g, ""))
     .setColor(3447003)
@@ -336,7 +341,7 @@ function getEmbedFromHTML(update) {
         indentLength--;
       }
 
-      bulletPoint = bulletPoint.replace(/<\/?ul>/g, "").replace(/<\/?i>/g, "*").replace(/<\/?b>/g, "**");
+      bulletPoint = bulletPoint.replace(/<\/?ul>/g, "").replace(/<\/?i>/g, "*").replace(/<\/?b( style="")?>/g, "**");
 
       if (bulletPoint.length === 0) {
         // Sometimes, after formatting, we get an empty bullet point, so just ignore it
