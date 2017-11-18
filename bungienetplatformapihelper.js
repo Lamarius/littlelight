@@ -83,10 +83,13 @@ module.exports = {
                 .setTitle(result.title)
                 .setColor(3447003)
                 .setThumbnail(img)
-                .setDescription(description[1] ? description[1] : description[0])
-                .setURL(description[2])
                 .addField("Tips", result.eventContent.tips.join('\n\n'));
-
+              if (description) {
+                embed.setDescription(description[1] ? description[1] : description[0])
+                     .setURL(description[2])
+              } else {
+                embed.setDescription(result.eventContent.about);
+              }
               callback({embed: embed});
             });
           }
@@ -227,6 +230,44 @@ function apiClanWeeklyRewardStateCall(callback) {
   });
 }
 
+// TODO: Implement the "Celebrate with [faction]" events, a sample is as follows:
+// {
+//   "Response": {
+//     "identifier": "364880304",
+//     "entityType": 3,
+//     "destinyRitual": {
+//       "image": "/img/destiny_content/pgcr/conceptual_faction_rally.jpg",
+//       "title": "Celebrate with New Monarchy",
+//       "subtitle": "To celebrate, New Monarchy offers Guardians a Legendary Weapon.",
+//       "dateStart": "2017-11-14T09:00:00Z",
+//       "dateEnd": "2017-11-21T09:00:00Z",
+//       "milestoneDetails": {
+//         "milestoneHash": 364880304,
+//         "availableQuests": [
+//           {
+//             "questItemHash": 1433383514
+//           }
+//         ],
+//         "vendorHashes": [
+//           3819664660
+//         ],
+//         "vendors": [
+//           {
+//             "vendorHash": 3819664660,
+//             "previewItemHash": 2276266837
+//           }
+//         ],
+//         "startDate": "2017-11-14T09:00:00Z",
+//         "endDate": "2017-11-21T09:00:00Z"
+//       }
+//     }
+//   },
+//   "ErrorCode": 1,
+//   "ThrottleSeconds": 0,
+//   "ErrorStatus": "Success",
+//   "Message": "Ok",
+//   "MessageData": {}
+// }
 function apiEventsCall(callback) {
   apiCall("/Trending/Categories/LiveEvents/0/", "GET", (data) => {
     if (data.ErrorCode != 1) {
@@ -236,7 +277,8 @@ function apiEventsCall(callback) {
       events = [];
       data.Response.results.forEach((event) => {
         if (event.displayName.indexOf("Iron Banner") === 0 || 
-            event.displayName.indexOf("Faction Rally") === 0) {
+            event.displayName.indexOf("Faction Rally") === 0 ||
+            event.displayName.indexOf("Clarion Call") === 0) {
           events.push({type: event.entityType, id: event.identifier, image: event.image});
         }
       });
@@ -314,7 +356,12 @@ function getEmbedFromHTML(update) {
     .replace(/<\/?blockquote.*?>|<\/?div.*?>|<big>(<b><br><\/b>|<br>)<\/big>|<\/?span.*?>|<br>|<\/big><\/b><b><big>|<a.*?>|<\/a>/g, "")
     .split("<big>");
 
-  // In this instance, bungie decided not to use the big tag or the span tag, so I had to put it in there
+  // In this instance, bungie decided not to use <big> or <span>, so I had to put it in there
+  if (fields.length === 1) {
+    fields = fields[0].replace(/General/g, "<big>General</big>").split("<big>");
+  }
+
+  // In this instance... same [expletive], but done even differently as what was done above
   if (fields.length === 1) {
     fields = fields[0].replace(/<\/b><b><\/b>/g, "<big>").replace(/<ul><li>/g, "</big><ul><li>").split("<big>");
   }
