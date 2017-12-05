@@ -366,58 +366,68 @@ function getEmbedFromHTML(update) {
     fields = fields[0].replace(/<\/b><b><\/b>/g, "<big>").replace(/<ul><li>/g, "</big><ul><li>").split("<big>");
   }
 
-  var embed = new Discord.RichEmbed()
-    .setTitle(fields[0].replace(/<\/?.*?>/g, ""))
-    .setColor(3447003)
-    .setImage(update.image)
-    .setURL(update.url);
+  try {
+    var embed = new Discord.RichEmbed()
+      .setTitle(fields[0].replace(/<\/?.*?>/g, ""))
+      .setColor(3447003)
+      .setImage(update.image)
+      .setURL(update.url);
 
-  // Basically doing the same thing we did initially, but on a per field basis
-  for (i = 1; i < fields.length; i++) {
-    var field = fields[i].split("</big>");
-    var title = field[0].replace(/<\/?.*?>/g, "");
-    var value = "";
-    if (field.length === 1) console.log(fields);
-    var bulletPoints = field[1].replace(/<b><\/b>|^<\/b>|<b>$|<\/li>/g, "").split("<li>");
-    var indentLength = -1;
+    // Basically doing the same thing we did initially, but on a per field basis
+    for (i = 1; i < fields.length; i++) {
+      var field = fields[i].split("</big>");
+      var title = field[0].replace(/<\/?.*?>/g, "");
+      var value = "";
+      var bulletPoints = field[1].replace(/<b><\/b>|^<\/b>|<b>$|<\/li>/g, "").split("<li>");
+      var indentLength = -1;
 
-    bulletPoints.forEach((bulletPoint) => {
-      if (bulletPoint.endsWith("<ul>")) {
-        indentLength++;
-      } else if (bulletPoint.endsWith("</ul>")) {
-        indentLength--;
-      }
+      bulletPoints.forEach((bulletPoint) => {
+        if (bulletPoint.endsWith("<ul>")) {
+          indentLength++;
+        } else if (bulletPoint.endsWith("</ul>")) {
+          indentLength--;
+        }
 
-      bulletPoint = bulletPoint.replace(/<\/?ul>/g, "").replace(/<\/?i>/g, "*").replace(/<\/?b( style="")?>/g, "**");
+        bulletPoint = bulletPoint.replace(/<\/?ul>/g, "").replace(/<\/?i>/g, "*").replace(/<\/?b( style="")?>/g, "**");
 
-      if (bulletPoint.length === 0) {
-        // Sometimes, after formatting, we get an empty bullet point, so just ignore it
-        return;
-      } else if (bulletPoint.startsWith("***")) {
-        // Sometimes our bullet point's subheaders are bolded and italicized instead of starting 
-        // with a bullet, so we do that instead
-        value += bulletPoint + "\n";
-      } else if (bulletPoint.endsWith("***")) {
-        // Sometimes, when the next subheader is bolded and italicized, it ends up on the end of the
-        // previous bullet point instead of being its own bullet point, let's fix that
-        bulletPoint = bulletPoint.split("***");
-        value += "•  " + bulletPoint[0] + "\n***" + bulletPoint[1] + "***" + "\n";
-        indentLength--;
-      } else {
-        // Most of the time it's this
-        value += "•  " + bulletPoint + "\n";
-      }
+        if (bulletPoint.length === 0) {
+          // Sometimes, after formatting, we get an empty bullet point, so just ignore it
+          return;
+        } else if (bulletPoint.startsWith("***")) {
+          // Sometimes our bullet point's subheaders are bolded and italicized instead of starting 
+          // with a bullet, so we do that instead
+          value += bulletPoint + "\n";
+        } else if (bulletPoint.endsWith("***")) {
+          // Sometimes, when the next subheader is bolded and italicized, it ends up on the end of the
+          // previous bullet point instead of being its own bullet point, let's fix that
+          bulletPoint = bulletPoint.split("***");
+          value += "•  " + bulletPoint[0] + "\n***" + bulletPoint[1] + "***\n";
+          indentLength--;
+        } else {
+          // Most of the time it's this
+          value += "•  " + bulletPoint + "\n";
+        }
 
-      // Add a tab for each level the patch notes are indented
-      for (j = 0; j < indentLength; j++) {
-        value += "\t";
-      }
-    });
+        // Add a tab for each level the patch notes are indented
+        for (j = 0; j < indentLength; j++) {
+          value += "\t";
+        }
+      });
 
-    // Embed field values will begin with an empty bullet point and end with a new line, trim those
-    value = value.replace(/(^•\s\s\/n|\/n$)/g, "");
-    embed.addField(title, value);
+      // Embed field values will begin with an empty bullet point and end with a new line, trim those
+      value = value.replace(/(^•\s\s\/n|\/n$)/g, "");
+      embed.addField(title, value);
+    }
+
+    return embed;
+  } catch (err) {
+    // For when, no matter how hard I try, things just don't work out
+    var embed = new Discord.RichEmbed()
+      .setTitle(fields[0].replace(/<\/?.*?>/g, ""))
+      .setColor(3447003)
+      .setImage(update.image)
+      .setURL(update.url)
+      .addField("Patch notes cannot be parsed.", "Please visit the link to view patch details.");
+    return (embed);
   }
-
-  return embed;
 }
