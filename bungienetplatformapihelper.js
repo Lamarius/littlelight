@@ -110,6 +110,7 @@ module.exports = {
         updatesRemaining = result.length;
         updates = [];
         result.forEach((update) => {
+          console.log(update);
           if (typeof update === 'string') {
             updatesRemaining--;
             callback(event);
@@ -119,7 +120,8 @@ module.exports = {
                 date: result.creationDate, 
                 content: result.properties.Content, 
                 image: "https://www.bungie.net" + result.properties.FrontPageBanner, 
-                url: "https://www.bungie.net" + update.link
+                url: "https://www.bungie.net" + update.link,
+                title: update.tagline
               });
 
               updatesRemaining--;
@@ -368,7 +370,7 @@ function getEmbedFromHTML(update) {
 
   try {
     var embed = new Discord.RichEmbed()
-      .setTitle(fields[0].replace(/<\/?.*?>/g, ""))
+      .setTitle(update.title ? update.title : fields[0].replace(/<\/?.*?>/g, "").substring(0, 256))
       .setColor(3447003)
       .setImage(update.image)
       .setURL(update.url);
@@ -423,7 +425,7 @@ function getEmbedFromHTML(update) {
   } catch (err) {
     // For when, no matter how hard I try, things just don't work out
     var embed = new Discord.RichEmbed()
-      .setTitle(fields[0].replace(/<\/?.*?>/g, ""))
+      .setTitle(update.title ? update.title : fields[0].replace(/<\/?.*?>/g, "").substring(0, 256))
       .setColor(3447003)
       .setImage(update.image)
       .setURL(update.url)
