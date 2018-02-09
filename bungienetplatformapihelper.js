@@ -347,7 +347,7 @@ function apiUpdateDetailsCall(type, id, callback) {
 function getEmbedFromHTML(update) {
   // Every single time Destiny 2 updates, the format of their post changes.
   var embed = new Discord.RichEmbed()
-    .setTitle(update.title ? "Test " +update.title : "Destiny 2 update.")
+    .setTitle(update.title ? update.title : "Destiny 2 update.")
     .setColor(3447003)
     .setImage(update.image)
     .setURL(update.url)
