@@ -7,12 +7,10 @@ var Discord = require('discord.js');
 var schedule = require('node-schedule-tz');
 var bungienetplatform = require('./bungienetplatformapihelper.js');
 var help = require('./help.js');
+var config = require('./config.js');
 
 // Create an instance of a Discord client
 var client = new Discord.Client();
-
-// The bot token
-var token = 'MzU4NjU4MDI1NjAwNDUwNTYw.DJ7qkg.-sbS4JC2e0rvwsubuKm1bYxdQZA';
 
 // The ready event is vital, it means that your bot will only start reacting to information
 // from Discord _after_ ready is emitted
@@ -93,4 +91,4 @@ function sendMessage(channel, content, options) {
 }
 
 // Log our bot in
-client.login(token);
+client.login(config.token);
