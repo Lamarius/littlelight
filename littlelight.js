@@ -23,9 +23,10 @@ client.on('ready', () => {
   xurRecurrenceRule.tz = 'America/Chicago' // Central time
 
   // Annouce Xur every Friday at 9 am Central
-  var xurSchedule = schedule.scheduleJob(xurRecurrenceRule, () => {
-    sendMessage(client.channels.find('id', '358655605084258304'), '@here Xur is up! You can find him at https://xur.party/');
-  });
+  // TODO: Re-enable when there is a suitable way to find Xur's location and wares again
+  // var xurSchedule = schedule.scheduleJob(xurRecurrenceRule, () => {
+  //   sendMessage(client.channels.find('id', '358655605084258304'), '@here Xur is up! You can find him at https://xur.party/');
+  // });
 
   // Check every 2 hours to see if the game has updated
   var updateSchedule = schedule.scheduleJob('0 */2 * * *', () => {
