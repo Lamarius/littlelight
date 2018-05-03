@@ -102,7 +102,7 @@ module.exports = {
   newUpdate: callback => {
     apiUpdatesCall(update => {
       if (update.length !== 0 && typeof update !== 'string') {
-        if (currentVersion === update.identifier) {
+        if (currentVersion === '' || currentVersion === update.identifier) {
           currentVersion = update.identifier;
           return callback(null);
         } else if (currentVersion !== update.identifier) {
