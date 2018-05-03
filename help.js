@@ -20,8 +20,7 @@ module.exports = {
                             "any events that might be going on, such as 'Iron Banner' or a 'Faction Rally'.")
         .addField("updates", "Thanks to all the scan patrols, I'm able to keep a log of any changes " +
                              "that happen to our world. By using this command, I can relay those " +
-                             "change logs back to you. An optional parameter may be used to... limit " + 
-                             "my excessive recitation of such reports. You may type ``!ll help updates`` " +
+                             "change logs back to you. You may type ``!ll help updates`` " +
                              "to learn more.");
     } else if (topic === 'clan') {
       embed.setTitle("little-light clan help")
@@ -44,12 +43,7 @@ module.exports = {
         .setDescription("By analyzing the information recorded in scan patrols, I'm able give a " +
                         "detailed report of the changes to our world. I've left out the parts " +
                         "regarding tectonic shifts and what happened to Florida after the golden age. " +
-                        "Poor Florida... By default, using this command will list the last major change, " +
-                        "as well as all minor changes that followed. his command has an optional parameter " +
-                        "to further limit this list, however.")
-        .addField("*Optional* [Number]", "By adding a number to the end of this command, you can limit " +
-                  "the number of reports I list by that number. For instance, ``!ll updates 1`` will " +
-                  "display the very latest change only.");
+                        "Poor Florida...");
     } else {
       return "I'm sorry, but I have no information on that topic.";
     }

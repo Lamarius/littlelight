@@ -16,17 +16,17 @@ var clanId = config.clanId;
 var currentVersion = '';
 
 module.exports = {
-  clanLeaderboards: (callback) => {
-    apiClanLeaderboardCall((result) => {
+  clanLeaderboards: callback => {
+    apiClanLeaderboardCall(result => {
       return callback(result);
     });
   },
 
-  clanRewardProgress: (callback) => {
-    apiClanWeeklyRewardStateCall((result) => {
+  clanRewardProgress: callback => {
+    apiClanWeeklyRewardStateCall(result => {
       // Format result into a nice little embed
       var nightfall, trials, raid, pvp;
-      result.milestone.forEach((entry) => {
+      result.milestone.forEach(entry => {
         if (result.definition[entry.rewardEntryHash].rewardEntryIdentifier === 'nightfall') {
           nightfall = (entry.earned ? ":ballot_box_with_check: " : ":x: ") 
                     + result.definition[entry.rewardEntryHash].displayProperties.description;
@@ -67,17 +67,17 @@ module.exports = {
     });
   },
 
-  events: (callback) => {
-    apiEventsCall((result) => {
+  events: callback => {
+    apiEventsCall(result => {
       if (result.length === 0) {
         return callback("There are currently no events active (to my knowledge)");
       } else {
-        result.forEach((event) => {
+        result.forEach(event => {
           if (typeof event === 'string') {
             callback(event);
           } else {
             var img = "https://www.bungie.net" + event.image;
-            apiEventDetailsCall(event.type, event.id, (result) => {
+            apiEventDetailsCall(event.type, event.id, result => {
               var re = new RegExp('(.*?)<.*<a href="(.*?)"');
               var description = re.exec(result.eventContent.about);
               var embed = new Discord.RichEmbed()
@@ -99,60 +99,15 @@ module.exports = {
     });
   },
 
-  updates: (numOfUpdates, callback) => {
-    if (numOfUpdates < 1) {
-      numOfUpdates = null;
-    }
-
-    apiUpdatesCall(numOfUpdates, (result) => {
-      if (result.length === 0) {
-        return callback("There are no updates... wait what? There was a day one update! What the heck!?");
-      } else {
-        updatesRemaining = result.length;
-        updates = [];
-        result.forEach((update) => {
-          console.log(update);
-          if (typeof update === 'string') {
-            updatesRemaining--;
-            callback(event);
-          } else {
-            apiUpdateDetailsCall(update.entityType, update.identifier, (result) => {
-              updates.push({
-                date: result.creationDate, 
-                content: result.properties.Content, 
-                image: "https://www.bungie.net" + result.properties.FrontPageBanner, 
-                url: "https://www.bungie.net" + update.link,
-                title: update.tagline
-              });
-
-              updatesRemaining--;
-              if (updatesRemaining <= 0) {
-                updates.sort((a, b) => {
-                  return new Date(b.date) - new Date(a.date);
-                });
-
-                updates.forEach((update) => {
-                  var embed = getEmbedFromHTML(update);
-                  return callback({embed: embed});
-                });
-              }
-            });
-          }
-        });
-      }
-    });
-  },
-
-  newUpdate: (callback) => {
-    apiUpdatesCall(1, (result) => {
-      update = result[0];
+  newUpdate: callback => {
+    apiUpdatesCall(update => {
       if (update.length !== 0 && typeof update !== 'string') {
-        if (currentVersion === '' || currentVersion === update.identifier) {
+        if (currentVersion === update.identifier) {
           currentVersion = update.identifier;
           return callback(null);
         } else if (currentVersion !== update.identifier) {
           currentVersion = update.identifier;
-          apiUpdateDetailsCall(update.entityType, update.identifier, (result) => {
+          apiUpdateDetailsCall(update.entityType, update.identifier, result => {
             if (typeof result === 'string') {
               console.log(result);
               return callback(null);
@@ -186,11 +141,11 @@ function apiCall(path, method, callback) {
     headers: headers
   }
 
-  var req = https.request(options, (res) => {
+  var req = https.request(options, res => {
     res.setEncoding('utf8');
     let body = "";
 
-    res.on('data', (data) => {
+    res.on('data', data => {
       body += data;
     });
 
@@ -201,13 +156,13 @@ function apiCall(path, method, callback) {
   });
 
   req.end();
-  req.on('error', (err) => {
+  req.on('error', err => {
     return callback(err);
   });
 }
 
 function apiClanLeaderboardCall(callback) {
-  apiCall("/Destiny2/Stats/Leaderboards/Clans/" + clanId + "/", "GET", (data) => {
+  apiCall("/Destiny2/Stats/Leaderboards/Clans/" + clanId + "/", "GET", data => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
@@ -217,13 +172,13 @@ function apiClanLeaderboardCall(callback) {
 
 function apiClanWeeklyRewardStateCall(callback) {
   var clanMilestone;
-  apiCall("/Destiny2/Clan/" + clanId + "/WeeklyRewardState/", "GET", (data) => {
+  apiCall("/Destiny2/Clan/" + clanId + "/WeeklyRewardState/", "GET", data => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
     clanMilestone = data.Response;
     var definition;
-    apiCall("/Destiny2/Manifest/DestinyMilestoneDefinition/" + clanMilestone.milestoneHash + "/", "GET", (data) => {
+    apiCall("/Destiny2/Manifest/DestinyMilestoneDefinition/" + clanMilestone.milestoneHash + "/", "GET", data => {
       if (data.ErrorCode != 1) {
         return callback(data.Message);
       }
@@ -272,13 +227,13 @@ function apiClanWeeklyRewardStateCall(callback) {
 //   "MessageData": {}
 // }
 function apiEventsCall(callback) {
-  apiCall("/Trending/Categories/LiveEvents/0/", "GET", (data) => {
+  apiCall("/Trending/Categories/LiveEvents/0/", "GET", data => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
     if (data.Response) {
       events = [];
-      data.Response.results.forEach((event) => {
+      data.Response.results.forEach(event => {
         if (event.displayName.indexOf("Iron Banner") === 0 || 
             event.displayName.indexOf("Faction Rally") === 0 ||
             event.displayName.indexOf("Clarion Call") === 0) {
@@ -291,7 +246,7 @@ function apiEventsCall(callback) {
 }
 
 function apiEventDetailsCall(type, id, callback) {
-  apiCall("/Trending/Details/" + type + "/" + id + "/", "GET", (data) => {
+  apiCall("/Trending/Details/" + type + "/" + id + "/", "GET", data => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
@@ -301,40 +256,30 @@ function apiEventDetailsCall(type, id, callback) {
   })
 }
 
-function apiUpdatesCall(numOfUpdates, callback) {
-  apiCall("/Trending/Categories/Updates/0/", "GET", (data) => {
+function apiUpdatesCall(callback) {
+  apiCall("/Trending/Categories/Updates/0/", "GET", data => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
     if (data.Response) {
       var results = data.Response.results;
       var length = data.Response.results.length
-      var updates = [];
+      var update;
 
-      if (numOfUpdates && !isNaN(numOfUpdates)) {
-        for (i = 0; i < numOfUpdates; i++) {
-          if (results[i].displayName.includes("Destiny 2")) {
-            updates.push(results[i]);
-          } else {
-            break;
-          }
+      for (i = 0; i < length; i++) {
+        if (results[i].displayName.includes("Destiny 2")) {
+          update = results[i];
+          break;
         }
-        return callback(updates);
-      } else {
-        for (i = 0; i < length; i++) {
-          updates.push(results[i]);
-          if (results[i].displayName.indexOf("Update") !== -1) {
-            break;
-          }
-        }
-        return callback(updates);
       }
+
+      return callback(update);
     }
   });
 }
 
 function apiUpdateDetailsCall(type, id, callback) {
-  apiCall("/Trending/Details/" + type + "/" + id + "/", "GET", (data) => {
+  apiCall("/Trending/Details/" + type + "/" + id + "/", "GET", data => {
     if (data.ErrorCode != 1) {
       return callback(data.Message);
     }
@@ -345,7 +290,7 @@ function apiUpdateDetailsCall(type, id, callback) {
 }
 
 function getEmbedFromHTML(update) {
-  // Every single time Destiny 2 updates, the format of their post changes.
+  // Create an embed with a link to the update's bungie.net article
   var embed = new Discord.RichEmbed()
     .setTitle(update.title ? update.title : "Destiny 2 update.")
     .setColor(3447003)
@@ -353,92 +298,4 @@ function getEmbedFromHTML(update) {
     .setURL(update.url)
     .addField("Destiny 2 has been updated!", "Visit the link for more details.");
   return embed;
-  // This was fun... No, really, it was *suuuuper* fun...
-  // We're removing all tags we don't care about, reformatting some of the tags that screw us up 
-  // later, replacing ampersand code with the actual characters, and splitting the content up by
-  // <big> tags to get all of the fields
-  // var fields = update.content
-  //   .replace(/<span.*?>/g, "<big>")
-  //   .replace(/<\/span>/g, "</big>")
-  //   .replace(/&amp;/g, "&")
-  //   .replace(/&nbsp;/g, " ")
-  //   .replace(/\s<\/i>/g, "</i> ")
-  //   .replace(/>\s</g, "><")
-  //   .replace(/<\/?blockquote.*?>|<\/?div.*?>|<big>(<b><br><\/b>|<br>)<\/big>|<\/?span.*?>|<br>|<\/big><\/b><b><big>|<a.*?>|<\/a>/g, "")
-  //   .split("<big>");
-
-  // // In this instance, bungie decided not to use <big> or <span>, so I had to put it in there
-  // if (fields.length === 1) {
-  //   fields = fields[0].replace(/General/g, "<big>General</big>").split("<big>");
-  // }
-
-  // // In this instance... same [expletive], but done even differently as what was done above
-  // if (fields.length === 1) {
-  //   fields = fields[0].replace(/<\/b><b><\/b>/g, "<big>").replace(/<ul><li>/g, "</big><ul><li>").split("<big>");
-  // }
-
-  // try {
-  //   var embed = new Discord.RichEmbed()
-  //     .setTitle(update.title ? update.title : fields[0].replace(/<\/?.*?>/g, "").substring(0, 256))
-  //     .setColor(3447003)
-  //     .setImage(update.image)
-  //     .setURL(update.url);
-
-  //   // Basically doing the same thing we did initially, but on a per field basis
-  //   for (i = 1; i < fields.length; i++) {
-  //     var field = fields[i].split("</big>");
-  //     var title = field[0].replace(/<\/?.*?>/g, "");
-  //     var value = "";
-  //     var bulletPoints = field[1].replace(/<b><\/b>|^<\/b>|<b>$|<\/li>/g, "").split("<li>");
-  //     var indentLength = -1;
-
-  //     bulletPoints.forEach((bulletPoint) => {
-  //       if (bulletPoint.endsWith("<ul>")) {
-  //         indentLength++;
-  //       } else if (bulletPoint.endsWith("</ul>")) {
-  //         indentLength--;
-  //       }
-
-  //       bulletPoint = bulletPoint.replace(/<\/?ul>/g, "").replace(/<\/?i>/g, "*").replace(/<\/?b( style="")?>/g, "**");
-
-  //       if (bulletPoint.length === 0) {
-  //         // Sometimes, after formatting, we get an empty bullet point, so just ignore it
-  //         return;
-  //       } else if (bulletPoint.startsWith("***")) {
-  //         // Sometimes our bullet point's subheaders are bolded and italicized instead of starting 
-  //         // with a bullet, so we do that instead
-  //         value += bulletPoint + "\n";
-  //       } else if (bulletPoint.endsWith("***")) {
-  //         // Sometimes, when the next subheader is bolded and italicized, it ends up on the end of the
-  //         // previous bullet point instead of being its own bullet point, let's fix that
-  //         bulletPoint = bulletPoint.split("***");
-  //         value += "•  " + bulletPoint[0] + "\n***" + bulletPoint[1] + "***\n";
-  //         indentLength--;
-  //       } else {
-  //         // Most of the time it's this
-  //         value += "•  " + bulletPoint + "\n";
-  //       }
-
-  //       // Add a tab for each level the patch notes are indented
-  //       for (j = 0; j < indentLength; j++) {
-  //         value += "\t";
-  //       }
-  //     });
-
-  //     // Embed field values will begin with an empty bullet point and end with a new line, trim those
-  //     value = value.replace(/(^•\s\s\/n|\/n$)/g, "");
-  //     embed.addField(title, value);
-  //   }
-
-  //   return embed;
-  // } catch (err) {
-  //   // For when, no matter how hard I try, things just don't work out
-  //   var embed = new Discord.RichEmbed()
-  //     .setTitle(update.title ? update.title : fields[0].replace(/<\/?.*?>/g, "").substring(0, 256))
-  //     .setColor(3447003)
-  //     .setImage(update.image)
-  //     .setURL(update.url)
-  //     .addField("Patch notes cannot be parsed.", "Please visit the link to view patch details.");
-  //   return embed;
-  // }
 }

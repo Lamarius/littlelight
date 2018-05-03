@@ -30,7 +30,7 @@ client.on('ready', () => {
 
   // Check every 2 hours to see if the game has updated
   var updateSchedule = schedule.scheduleJob('0 */2 * * *', () => {
-    bungienetplatform.newUpdate((result) => {
+    bungienetplatform.newUpdate(result => {
       if (result !== null) {
         sendMessage(client.channels.find('id', '358655605084258304'), result.content, result.embed);
       }
@@ -54,25 +54,23 @@ client.on('message', message => {
       // Clan commands
       if (params[0] === 'rewards') {
         // Get clan weekly reward progress
-        bungienetplatform.clanRewardProgress((result) => {
+        bungienetplatform.clanRewardProgress(result => {
           sendMessage(channel, result);
         });
       } else if (params[0] === 'leaderboards') {
         // Get clan leaderboards (currently unavailable)
-        bungienetplatform.clanLeaderboards((result) => {
+        bungienetplatform.clanLeaderboards(result => {
           sendMessage(channel, result);
         });
       }
     } else if (params[0] === 'events') {
       // Get currently active events
-      bungienetplatform.events((result) => {
+      bungienetplatform.events(result => {
         sendMessage(channel, result);
       });
     } else if (params[0] === 'updates') {
-      // Get the latest updates to Destiny 2
-      bungienetplatform.updates(params[1], (result) => {
-        sendMessage(channel, result);
-      });
+      // Send link to https://www.bungie.net/en/News/Index?tag=news-updates
+      sendMessage(channel, "Updates can be found at https://www.bungie.net/en/News/Index?tag=news-updates");
     } else if (params[0] === 'help') {
       // Get help
       sendMessage(channel, help.getHelp(params[1]));
@@ -86,7 +84,7 @@ function sendMessage(channel, content, options) {
     return;
   }
   channel.send(content, options)
-    .then((message) => message.embeds.length > 0
+    .then(message => message.embeds.length > 0
           ? console.log(`Sent embedded message regarding ${message.embeds[0].title}`)
           : console.log(`Sent message: ${message.content}`));
 }
