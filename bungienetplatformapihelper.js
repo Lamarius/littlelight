@@ -12,6 +12,51 @@ var config = require('./config.js');
 
 var apiKey = config.apiKey;
 var clanId = config.clanId;
+const destinyActivityModeTypes = {
+  0: "None",
+  2: "Story",
+  3: "Strike",
+  4: "Raid",
+  5: "All PvP",
+  6: "Patrol",
+  7: "All PvE",
+  10: "Control",
+  12: "Clash",
+  15: "Crimson Doubles",
+  16: "Nightfall",
+  17: "Heroic Nightfall",
+  18: "All Strikes",
+  19: "Iron Banner",
+  25: "All Mayhem",
+  31: "Supremacy",
+  32: "All Private Matches",
+  37: "Survival",
+  38: "Countdown",
+  39: "Trials of the Nine",
+  40: "Social",
+  41: "Trials Countdown",
+  42: "Trials Survival",
+  43: "Iron Banner Control",
+  44: "Iron Banner Clash",
+  45: "Iron Banner Supremacy",
+  46: "Scored Nightfall",
+  47: "Scored Heroic Nightfall",
+  48: "Rumble",
+  49: "All Doubles",
+  50: "Doubles",
+  51: "Private Matches Clash",
+  52: "Private Matches Control",
+  53: "Private Matches Supremacy",
+  54: "Private Matches Countdown",
+  55: "Private Matches Survival",
+  56: "Private Matches Mayhem",
+  57: "Private Matches Rumble",
+  58: "Heroic Adventure",
+  59: "Showdown",
+  60: "Lockdown",
+  61: "Scorched",
+  62: "Team Scorched"
+};
 
 var currentVersion = '';
 
@@ -67,10 +112,43 @@ module.exports = {
     });
   },
 
+  clanStats: callback => {
+    apiAggregateClanStatsCall(response => {
+      if (response.ErrorCode !== 1) {
+        return callback(response.Message);
+      }
+
+      if (response.Response.length === 0) {
+        return callback("Unable to find clan stats.");
+      }
+
+      var stats = {};
+      response.Response.forEach(stat => {
+        if (stats[stat.mode] === undefined) stats[stat.mode] = {};
+        stats[stat.mode][stat.statId] = stat.value.basic.displayValue; 
+      });
+
+      var embed = new Discord.RichEmbed()
+        .setTitle("Clan stats (beta)")
+        .setDescription("This api callback is currently in beta, so some weird stuff might happen.")
+        .setColor(3447003);
+      for (var gamemodeId in stats) {
+        var gamemode = destinyActivityModeTypes[gamemodeId];
+        var message = "";
+        for (var statId in stats[gamemodeId]) {
+          message += statId.replace(/^lb/g, "").replace(/([A-Z])/g, " $1").trim() + ": " + stats[gamemodeId][statId] + "\n";
+        }
+
+        embed.addField(gamemode, message);
+      }
+      return callback({embed: embed});
+    });
+  },
+
   events: callback => {
     apiEventsCall(result => {
       if (result.length === 0) {
-        return callback("There are currently no events active (to my knowledge)");
+        return callback("There are currently no events active (to my knowledge).");
       } else {
         result.forEach(event => {
           if (typeof event === 'string') {
@@ -87,7 +165,7 @@ module.exports = {
                 .addField("Tips", result.eventContent.tips.join('\n\n'));
               if (description) {
                 embed.setDescription(description[1] ? description[1] : description[0])
-                     .setURL(description[2])
+                  .setURL(description[2]);
               } else {
                 embed.setDescription(result.eventContent.about);
               }
@@ -109,7 +187,6 @@ module.exports = {
           currentVersion = update.identifier;
           apiUpdateDetailsCall(update.entityType, update.identifier, result => {
             if (typeof result === 'string') {
-              console.log(result);
               return callback(null);
             } else {
               var details = {
@@ -158,6 +235,12 @@ function apiCall(path, method, callback) {
   req.end();
   req.on('error', err => {
     return callback(err);
+  });
+}
+
+function apiAggregateClanStatsCall(callback) {
+  apiCall("/Destiny2/Stats/AggregateClanStats/" + clanId + "/", "GET", response => {
+    return callback(response);
   });
 }
 
@@ -253,7 +336,7 @@ function apiEventDetailsCall(type, id, callback) {
     if (data.Response) {
       return callback(data.Response.destinyRitual);
     }
-  })
+  });
 }
 
 function apiUpdatesCall(callback) {

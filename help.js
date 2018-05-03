@@ -32,7 +32,9 @@ module.exports = {
                                   "unimplemented in the Destiny 2 api.)")
         .addField("rewards", "See what deeds your clan has achieved that Hawthorn deems so incredibly " +
                              "amazing that literally everyone in your clan deserves a reward for! " +
-                             "Seriously... she needs a life.");
+                             "Seriously... she needs a life.")
+        .addField("stats", "See aggregated clan stats for various types of missions. For as much as she " +
+                           "says she cares, not even Hawthorn can tell you all of this.");
     } else if (topic === 'events') {
       embed.setTitle("little-light events help")
         .setDescription("See what events the tower is holding. I guess when guardians are nearly " +

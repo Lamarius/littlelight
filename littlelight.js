@@ -49,17 +49,21 @@ client.on('message', message => {
 
   if (match && match.length > 1 ) {
     var params = match[2].split(/\s+/g);
-
-    if (match[1] === 'clan') {
+    if (params[0] === 'clan') {
       // Clan commands
-      if (params[0] === 'rewards') {
+      if (params[1] === 'rewards') {
         // Get clan weekly reward progress
         bungienetplatform.clanRewardProgress(result => {
           sendMessage(channel, result);
         });
-      } else if (params[0] === 'leaderboards') {
+      } else if (params[1] === 'leaderboards') {
         // Get clan leaderboards (currently unavailable)
         bungienetplatform.clanLeaderboards(result => {
+          sendMessage(channel, result);
+        });
+      } else if (params[1] === 'stats') {
+        // Get clan aggregate stats (beta)
+        bungienetplatform.clanStats(result => {
           sendMessage(channel, result);
         });
       }
