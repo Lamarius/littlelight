@@ -69,45 +69,21 @@ module.exports = {
 
   clanRewardProgress: callback => {
     apiClanWeeklyRewardStateCall(result => {
-      // Format result into a nice little embed
-      var nightfall, trials, raid, pvp;
-      result.milestone.forEach(entry => {
-        if (result.definition[entry.rewardEntryHash].rewardEntryIdentifier === 'nightfall') {
-          nightfall = (entry.earned ? ":ballot_box_with_check: " : ":x: ") 
-                    + result.definition[entry.rewardEntryHash].displayProperties.description;
-        } else if (result.definition[entry.rewardEntryHash].rewardEntryIdentifier === 'trials') {
-          trials = (entry.earned ? ":ballot_box_with_check: " : ":x: ") 
-                 + result.definition[entry.rewardEntryHash].displayProperties.description;
-        } else if (result.definition[entry.rewardEntryHash].rewardEntryIdentifier === 'raid') {
-          raid = (entry.earned ? ":ballot_box_with_check: " : ":x: ") 
-               + result.definition[entry.rewardEntryHash].displayProperties.description;
-        } else if (result.definition[entry.rewardEntryHash].rewardEntryIdentifier === 'pvp') {
-          pvp = (entry.earned ? ":ballot_box_with_check: " : ":x: ") 
-              + result.definition[entry.rewardEntryHash].displayProperties.description;
-        }
-      });
+      var embed = new Discord.RichEmbed()
+        .setTitle("Clan Weekly Reward Progress")
+        .setDescription("Rewards earned by clan activity.")
+        .setColor(3447003);
 
-      var embed = {
-        color: 3447003,
-        title: "Clan Weekly Reward Progress",
-        description: "Rewards earned by clan activity.",
-        fields: [{
-          name: "Nightfall",
-          value: nightfall
-        },
-        {
-          name: "Trials",
-          value: trials
-        },
-        {
-          name: "Raid",
-          value: raid
-        },
-        {
-          name: "PvP",
-          value: pvp
-        }]
-      };
+      result.milestone.forEach(entry => {
+        var identifier = result.definition[entry.rewardEntryHash].rewardEntryIdentifier === 'pvp' ? "PvP"
+                       : result.definition[entry.rewardEntryHash].rewardEntryIdentifier.replace(/^\w/, c => c.toUpperCase());
+
+        var earnedStatus = (entry.earned ? ":ballot_box_with_check: " : ":x: ")
+                         + result.definition[entry.rewardEntryHash].displayProperties.description;
+
+        embed.addField(identifier, earnedStatus);
+      });
+      
       return callback({embed: embed});
     });
   },
