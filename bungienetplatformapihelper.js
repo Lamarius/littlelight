@@ -62,44 +62,66 @@ var currentVersion = '';
 
 module.exports = {
   clanLeaderboards: callback => {
-    apiClanLeaderboardCall(result => {
-      return callback(result);
+    apiClanLeaderboardCall(data => {
+      if (data.ErrorCode !== 1) {
+        return callback(data.Message);
+      }
+
+      return callback("This method isn't ready yet.");
     });
   },
 
   clanRewardProgress: callback => {
-    apiClanWeeklyRewardStateCall(result => {
-      var embed = new Discord.RichEmbed()
-        .setTitle("Clan Weekly Reward Progress")
-        .setDescription("Rewards earned by clan activity.")
-        .setColor(3447003);
+    apiClanWeeklyRewardStateCall(data => {
+      console.log(data);
+      if (data.ErrorCode !== 1) {
+        return callback(data.Message);
+      } else {
+        var milestones = data.Response.rewards[0].entries;
+        var milestoneHash = data.Response.milestoneHash;
+        var rewardCategoryHash = data.Response.rewards[0].rewardCategoryHash;
+        apiMilestoneDefinitionCall(milestoneHash, data => {
+          console.log(data);
+          if (data.ErrorCode !== 1) {
+            return callback(data.Message);
+          }
 
-      result.milestone.forEach(entry => {
-        var identifier = result.definition[entry.rewardEntryHash].rewardEntryIdentifier === 'pvp' ? "PvP"
-                       : result.definition[entry.rewardEntryHash].rewardEntryIdentifier.replace(/^\w/, c => c.toUpperCase());
+          console.log(milestones);
+          var definitions = data.Response.rewards[rewardCategoryHash].rewardEntries;
+          var embed = new Discord.RichEmbed()
+            .setTitle("Clan Weekly Reward Progress")
+            .setDescription("Rewards earned by clan activity.")
+            .setColor(3447003);
 
-        var earnedStatus = (entry.earned ? ":ballot_box_with_check: " : ":x: ")
-                         + result.definition[entry.rewardEntryHash].displayProperties.description;
+          milestones.forEach(milestone => {
+            var definition = definitions[milestone.rewardEntryHash];
+            var identifier = definition.rewardEntryIdentifier === "pvp" ? "PvP"
+                           : definition.rewardEntryIdentifier.replace(/^\w/, c => c.toUpperCase());
+            var earnedStatus = (milestone.earned ? ":ballot_box_with_check: " : ":x: ")
+                             + definition.displayProperties.description;
 
-        embed.addField(identifier, earnedStatus);
-      });
-      
-      return callback({embed: embed});
+            embed.addField(identifier, earnedStatus);
+          });
+
+          console.log(embed);
+          return callback({embed: embed});
+        });
+      }
     });
   },
 
   clanStats: callback => {
-    apiAggregateClanStatsCall(response => {
-      if (response.ErrorCode !== 1) {
-        return callback(response.Message);
+    apiAggregateClanStatsCall(data => {
+      if (data.ErrorCode !== 1) {
+        return callback(data.Message);
       }
 
-      if (response.Response.length === 0) {
+      if (data.Response.length === 0) {
         return callback("Unable to find clan stats.");
       }
 
       var stats = {};
-      response.Response.forEach(stat => {
+      data.Response.forEach(stat => {
         if (stats[stat.mode] === undefined) stats[stat.mode] = {};
         stats[stat.mode][stat.statId] = stat.value.basic.displayValue; 
       });
@@ -215,35 +237,20 @@ function apiCall(path, method, callback) {
 }
 
 function apiAggregateClanStatsCall(callback) {
-  apiCall("/Destiny2/Stats/AggregateClanStats/" + clanId + "/", "GET", response => {
-    return callback(response);
+  apiCall("/Destiny2/Stats/AggregateClanStats/" + clanId + "/", "GET", data => {
+    return callback(data);
   });
 }
 
 function apiClanLeaderboardCall(callback) {
   apiCall("/Destiny2/Stats/Leaderboards/Clans/" + clanId + "/", "GET", data => {
-    if (data.ErrorCode != 1) {
-      return callback(data.Message);
-    }
-    return callback("This method isn't ready yet.");
+    return callback(data);
   });
 }
 
 function apiClanWeeklyRewardStateCall(callback) {
-  var clanMilestone;
   apiCall("/Destiny2/Clan/" + clanId + "/WeeklyRewardState/", "GET", data => {
-    if (data.ErrorCode != 1) {
-      return callback(data.Message);
-    }
-    clanMilestone = data.Response;
-    var definition;
-    apiCall("/Destiny2/Manifest/DestinyMilestoneDefinition/" + clanMilestone.milestoneHash + "/", "GET", data => {
-      if (data.ErrorCode != 1) {
-        return callback(data.Message);
-      }
-      definition = data.Response;
-      return callback({milestone: clanMilestone.rewards[0].entries, definition: definition.rewards[clanMilestone.rewards[0].rewardCategoryHash].rewardEntries});
-    });
+    return callback(data);
   });
 }
 
@@ -312,6 +319,12 @@ function apiEventDetailsCall(type, id, callback) {
     if (data.Response) {
       return callback(data.Response.destinyRitual);
     }
+  });
+}
+
+function apiMilestoneDefinitionCall(milestoneHash, callback) {
+  apiCall("/Destiny2/Manifest/DestinyMilestoneDefinition/" + milestoneHash + "/", "GET", data => {
+    return callback(data);
   });
 }
 
