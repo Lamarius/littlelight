@@ -184,47 +184,24 @@ module.exports = {
         return callback(noUpdates);
       }
 
-      var updates = data.Response.results;
-      var numOfUpdates = updates.length;
-      var update;
-
-      for (var i = 0; i < numOfUpdates; i++) {
-        // Update type: 7
-        //if (updates[i].displayName.includes("Destiny 2")) {
-        if (updates[i].entityType === 7) {
-          update = updates[i];
-          break;
-        }
-
-        // No update found (wow!)
-        if (i === numOfUpdates) {
-          return callback(noUpdates);
-        }
-      }
-
-      // Check against current version. If bot reset, assume no update happened.
-      if (currentVersion === '' || currentVersion === update.identifier) {
-        currentVersion = update.identifier;
-        return callback(null);
-      } else {
-        currentVersion = update.identifier;
-        apiUpdateDetailsCall(update.entityType, update.identifier, data => {
-          if (data.ErrorCode !== 1) {
-            return callback(data.Message);
+      for (var update of data.Response.results) {
+        if (update.entityType === 7) {
+          if (currentVersion === '' || currentVersion === update.identifier) {
+            currentVersion = update.identifier;
+            return callback(null);
           } else {
-            var article = data.Response.news.article;
+            currentVersion = update.identifier;
             var details = {
               title: update.displayName,
               tagline: update.tagline,
-              date: article.creationDate,
-              content: article.properties.Content,
+              date: update.creationDate,
               image: "https://www.bungie.net" + update.image,
               url: "https://www.bungie.net" + update.link
             };
             var embed = makeUpdateEmbed(details);
-            return callback({content: "@here Destiny 2 has just been updated!", embed: embed});
+            return callback({ content: "@here Destiny 2 has just been updated!", embed: embed });
           }
-        });
+        }
       }
     });
   }
