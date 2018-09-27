@@ -86,7 +86,6 @@ module.exports = {
             return callback(data.Message);
           }
 
-          console.log(milestones);
           var definitions = data.Response.rewards[rewardCategoryHash].rewardEntries;
           var embed = new Discord.RichEmbed()
             .setTitle("Clan Weekly Reward Progress")
@@ -103,7 +102,6 @@ module.exports = {
             embed.addField(identifier, earnedStatus);
           });
 
-          console.log(embed);
           return callback({embed: embed});
         });
       }
@@ -123,7 +121,7 @@ module.exports = {
       var stats = {};
       data.Response.forEach(stat => {
         if (stats[stat.mode] === undefined) stats[stat.mode] = {};
-        stats[stat.mode][stat.statId] = stat.value.basic.displayValue; 
+        stats[stat.mode][stat.statId] = stat.value.basic.displayValue;
       });
 
       var embed = new Discord.RichEmbed()
@@ -134,38 +132,40 @@ module.exports = {
         var gamemode = destinyActivityModeTypes[gamemodeId];
         var message = "";
         for (var statId in stats[gamemodeId]) {
-          message += statId.replace(/^lb/g, "").replace(/([A-Z])/g, " $1").trim() + ": " + stats[gamemodeId][statId] + "\n";
+          message += statId.replace(/^lb/g, "").replace(/([A-Z])/g, " $1").trim() + ": "
+                  + stats[gamemodeId][statId] + "\n";
         }
 
         embed.addField(gamemode, message);
       }
+
       return callback({embed: embed});
     });
   },
 
   events: callback => {
-    apiEventsCall(result => {
-      if (result.length === 0) {
+    apiEventsCall(data => {
+      if (data.length === 0) {
         return callback("There are currently no events active (to my knowledge).");
       } else {
-        result.forEach(event => {
+        data.forEach(event => {
           if (typeof event === 'string') {
             callback(event);
           } else {
             var img = "https://www.bungie.net" + event.image;
-            apiEventDetailsCall(event.type, event.id, result => {
+            apiEventDetailsCall(event.type, event.id, data => {
               var re = new RegExp('(.*?)<.*<a href="(.*?)"');
-              var description = re.exec(result.eventContent.about);
+              var description = re.exec(data.eventContent.about);
               var embed = new Discord.RichEmbed()
-                .setTitle(result.title)
+                .setTitle(data.title)
                 .setColor(3447003)
                 .setThumbnail(img)
-                .addField("Tips", result.eventContent.tips.join('\n\n'));
+                .addField("Tips", data.eventContent.tips.join('\n\n'));
               if (description) {
                 embed.setDescription(description[1] ? description[1] : description[0])
                   .setURL(description[2]);
               } else {
-                embed.setDescription(result.eventContent.about);
+                embed.setDescription(data.eventContent.about);
               }
               callback({embed: embed});
             });
@@ -176,28 +176,55 @@ module.exports = {
   },
 
   newUpdate: callback => {
-    apiUpdatesCall(update => {
-      if (update.length !== 0 && typeof update !== 'string') {
-        if (currentVersion === '' || currentVersion === update.identifier) {
-          currentVersion = update.identifier;
-          return callback(null);
-        } else if (currentVersion !== update.identifier) {
-          currentVersion = update.identifier;
-          apiUpdateDetailsCall(update.entityType, update.identifier, result => {
-            if (typeof result === 'string') {
-              return callback(null);
-            } else {
-              var details = {
-                date: result.creationDate,
-                content: result.properties.Content,
-                image: "https://www.bungie.net" + result.properties.FrontPageBanner,
-                url: "https://www.bungie.net" + update.link
-              };
-              var embed = getEmbedFromHTML(details);
-              return callback({content: "@here Destiny 2 has just been updated!", embed: embed});
-            }            
-          });
+    var noUpdates = "Huh, I wasn't able to find any updates. Something's not right...";
+    apiUpdatesCall(data => {
+      if (data.ErrorCode !== 1) {
+        return callback(data.Message);
+      } else if (!data.Response.results || data.Response.results.length === 0) {
+        return callback(noUpdates);
+      }
+
+      var updates = data.Response.results;
+      var numOfUpdates = updates.length;
+      var update;
+
+      for (var i = 0; i < numOfUpdates; i++) {
+        // Update type: 7
+        //if (updates[i].displayName.includes("Destiny 2")) {
+        if (updates[i].entityType === 7) {
+          update = updates[i];
+          break;
         }
+
+        // No update found (wow!)
+        if (i === numOfUpdates) {
+          return callback(noUpdates);
+        }
+      }
+
+      // Check against current version. If bot reset, assume no update happened.
+      if (currentVersion === '' || currentVersion === update.identifier) {
+        currentVersion = update.identifier;
+        return callback(null);
+      } else {
+        currentVersion = update.identifier;
+        apiUpdateDetailsCall(update.entityType, update.identifier, data => {
+          if (data.ErrorCode !== 1) {
+            return callback(data.Message);
+          } else {
+            var article = data.Response.news.article;
+            var details = {
+              title: update.displayName,
+              tagline: update.tagline,
+              date: article.creationDate,
+              content: article.properties.Content,
+              image: "https://www.bungie.net" + update.image,
+              url: "https://www.bungie.net" + update.link
+            };
+            var embed = makeUpdateEmbed(details);
+            return callback({content: "@here Destiny 2 has just been updated!", embed: embed});
+          }
+        });
       }
     });
   }
@@ -300,7 +327,7 @@ function apiEventsCall(callback) {
     if (data.Response) {
       events = [];
       data.Response.results.forEach(event => {
-        if (event.displayName.indexOf("Iron Banner") === 0 || 
+        if (event.displayName.indexOf("Iron Banner") === 0 ||
             event.displayName.indexOf("Faction Rally") === 0 ||
             event.displayName.indexOf("Clarion Call") === 0) {
           events.push({type: event.entityType, id: event.identifier, image: event.image});
@@ -330,41 +357,21 @@ function apiMilestoneDefinitionCall(milestoneHash, callback) {
 
 function apiUpdatesCall(callback) {
   apiCall("/Trending/Categories/Updates/0/", "GET", data => {
-    if (data.ErrorCode != 1) {
-      return callback(data.Message);
-    }
-    if (data.Response) {
-      var results = data.Response.results;
-      var length = data.Response.results.length
-      var update;
-
-      for (i = 0; i < length; i++) {
-        if (results[i].displayName.includes("Destiny 2")) {
-          update = results[i];
-          break;
-        }
-      }
-
-      return callback(update);
-    }
+    return callback(data);
   });
 }
 
 function apiUpdateDetailsCall(type, id, callback) {
   apiCall("/Trending/Details/" + type + "/" + id + "/", "GET", data => {
-    if (data.ErrorCode != 1) {
-      return callback(data.Message);
-    }
-    if (data.Response) {
-      return callback(data.Response.news.article);
-    }
+    return callback(data);
   });
 }
 
-function getEmbedFromHTML(update) {
+function makeUpdateEmbed(update) {
   // Create an embed with a link to the update's bungie.net article
   var embed = new Discord.RichEmbed()
     .setTitle(update.title ? update.title : "Destiny 2 update.")
+    .setDescription(update.tagline)
     .setColor(3447003)
     .setImage(update.image)
     .setURL(update.url)
