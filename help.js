@@ -21,7 +21,9 @@ module.exports = {
         .addField("updates", "Thanks to all the scan patrols, I'm able to keep a log of any changes " +
                              "that happen to our world. By using this command, I can relay those " +
                              "change logs back to you. You may type ``!ll help updates`` " +
-                             "to learn more.");
+                             "to learn more.")
+        .addField("xur", "My will is not my own... *ahem*, I mean, get information regarding the current " +
+                         "wares and whereabouts of this agent of the nine.");
     } else if (topic === 'clan') {
       embed.setTitle("little-light clan help")
         .setDescription("Never talk to Hawthorn again... until she's ready to give you something. " +
@@ -46,6 +48,10 @@ module.exports = {
                         "detailed report of the changes to our world. I've left out the parts " +
                         "regarding tectonic shifts and what happened to Florida after the golden age. " +
                         "Poor Florida...");
+    } else if (topic === 'xur') {
+       embed.setTitle("little-light xur help")
+        .setDescription("By analyzing the reports of other guardians, I am able to get a reading on " +
+                        "Xur's current location, as well as the items he has in stock.");
     } else {
       return "I'm sorry, but I have no information on that topic.";
     }

@@ -78,6 +78,11 @@ client.on('message', message => {
     } else if (params[0] === 'help') {
       // Get help
       sendMessage(channel, help.getHelp(params[1]));
+    } else if (params[0] === 'xur') {
+      // Get xur's last/current location
+      bungienetplatform.xur(false, result => {
+        sendMessage(channel, result);
+      });
     }
   }
 });

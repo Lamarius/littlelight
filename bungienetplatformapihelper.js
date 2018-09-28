@@ -6,6 +6,7 @@
 
 var Discord = require('discord.js');
 var https = require('https');
+var Parser = require('rss-parser');
 var querystring = require('querystring');
 var util = require('util');
 var config = require('./config.js');
@@ -73,7 +74,6 @@ module.exports = {
 
   clanRewardProgress: callback => {
     apiClanWeeklyRewardStateCall(data => {
-      console.log(data);
       if (data.ErrorCode !== 1) {
         return callback(data.Message);
       } else {
@@ -81,7 +81,6 @@ module.exports = {
         var milestoneHash = data.Response.milestoneHash;
         var rewardCategoryHash = data.Response.rewards[0].rewardCategoryHash;
         apiMilestoneDefinitionCall(milestoneHash, data => {
-          console.log(data);
           if (data.ErrorCode !== 1) {
             return callback(data.Message);
           }
@@ -102,7 +101,7 @@ module.exports = {
             embed.addField(identifier, earnedStatus);
           });
 
-          return callback({embed: embed});
+          return callback({ embed: embed });
         });
       }
     });
@@ -139,7 +138,7 @@ module.exports = {
         embed.addField(gamemode, message);
       }
 
-      return callback({embed: embed});
+      return callback({ embed: embed });
     });
   },
 
@@ -167,7 +166,7 @@ module.exports = {
               } else {
                 embed.setDescription(data.eventContent.about);
               }
-              callback({embed: embed});
+              callback({ embed: embed });
             });
           }
         });
@@ -203,6 +202,88 @@ module.exports = {
           }
         }
       }
+    });
+  },
+
+  xur: (newOnly, callback) => {
+    var xurQuotes = [
+      "The heliosheath is not the only door into the system.",
+      "You have fought everything else that entered this realm. Will you fight a planet?.",
+      "The dust has commingled, the Nine is forever changed.",
+      "There is a door in the woods. It is opening.",
+      "Do not be afraid. The Nine wish to be kind to you.",
+      "Do not fear me. That is not why I am here.",
+      "Do not be alarmed. I know no reason to cause you harm.",
+      "The Nine’s eye is still watching.",
+      "You will not find the Nine that way, but they will find you.",
+      "If you are here, it means the Nine are not done with you yet.",
+      "The Nine see your valour.",
+      "Do not go looking for the Nine. They will come to you.",
+      "They want to know about you. It is an honour.",
+      "I am here for a reason. I just… cannot remember it.",
+      "I bring a message from the Nine.",
+      "I have a message for you from the Nine, but I forget it.",
+      "I do mean to explain, but every time I try, I lose the thread.",
+      "One day, you will understand, Warlock.",
+      "I have explained it the best that I can.",
+      "I am trying to give you answers, Warlock. Believe me.",
+      "What happens when every cell is dead?.",
+      "You made the adaptations necessary to further organic life.",
+      "Your cells can be more than cells.",
+      "It is my fate to help you. This I know.",
+      "I think you have terrible need of my gifts.",
+      "These are from the Nine.",
+      "The Nine show you these.",
+      "I bring gifts of the Nine. Gifts you sorely need.",
+      "Perhaps this is why the Nine sent me here.",
+      "I come bearing help.",
+      "My will is not my own. Is yours?",
+      "Yours is a lonely existence.",
+      "Is it your will to return?",
+      "To do what you say, is to speak in a language of pure meaning.",
+      "You face the strongest enemies in the system, and you still live? Interesting.",
+      "I returned to the Tower to find it empty.",
+      "The Traveler's song echoes on.",
+      "I may be here when you return.",
+      "If you had died your final death, it would have been the will of the Nine and therefore right. But… I'm glad you didn't.",
+      "I hope to be here again.",
+      "I cannot promise I will be here when you return… if you return."
+    ];
+
+    getXurFeed().then(data => {
+      if (!data.items || data.items.length === 0) {
+        return callback("I was unable to find any information on xur.");
+      }
+
+      var xurInfo = data.items[0];
+      var xurDate = new Date(xurInfo.pubDate);
+      var xurContent = xurInfo.content.replace(/(\s|\\n)+/g, ' ');
+      if (!newOnly || (xurDate.getDate() === new Date().getDate() && xurContent.contains("<ul>"))) {
+        var quote = xurQuotes[Math.floor(Math.random() * xurQuotes.length)];
+        var embed = new Discord.RichEmbed()
+          .setTitle("Xur: " + xurDate.toDateString())
+          .setDescription(quote)
+          .setColor(0x2E7AC7)
+          //.setImage(update.image)
+          .setURL("https://www.findxur.com");
+
+        // Get Xur's location and items (if known)
+        if (xurContent.includes("<ul>")) {
+          // Get location description and image. First match gets description, second match gets image url.
+          var locationPattern = /<p>(Xur is .*)<\/p>\s<a href="([^\s]*)"/;
+          var locationInfo = locationPattern.exec(xurContent);
+          embed.addField("Location", "[" + locationInfo[1] + "](" + locationInfo[2] + ")");
+          // Gets item information. First match gets the item url, second match gets the item name, third match gets the item type.
+          var items = /(?:(?:<p>)?\s?<li>\s?(?:<p>)?\s?<a href="([^\s]*)">([\w\s-’]*)<\/a>\s([\[\]\w\s]*)\s?(?:<\/p>)?\s?<\/li>)/g;
+          while ((itemInfo = items.exec(xurContent)) !== null) {
+            embed.addField(itemInfo[2] + " " + itemInfo[3], "[Item stats](" + itemInfo[1] + ")");
+          }
+        } else {
+          embed.addField("Info unavailable", "Xur's current wares and whereabouts are still unknown");
+        }
+        return callback({ embed: embed });
+      }
+      return callback(null);
     });
   }
 }
@@ -342,6 +423,12 @@ function apiUpdateDetailsCall(type, id, callback) {
   apiCall("/Trending/Details/" + type + "/" + id + "/", "GET", data => {
     return callback(data);
   });
+}
+
+async function getXurFeed() {
+  var parser = new Parser();
+  //parser.parseURL('https://discussions.ftw.in/c/destiny/find-xur.rss').then(feed => { return callback(feed); });
+  return await parser.parseURL('https://discussions.ftw.in/c/destiny/find-xur.rss')
 }
 
 function makeUpdateEmbed(update) {
