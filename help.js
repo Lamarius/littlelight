@@ -15,6 +15,8 @@ module.exports = {
         .addField("clan", "The clan command allows me to access information regarding your clan. " +
                           "A parameter is required to use this command. Current parameters are " +
                           "``rewards`` and ``leaderboards``. Use ``!ll help clan`` to learn more.")
+        .addField("ep", "Rasputin has decided to share information regarding the current escalation " +
+                        "protocol. You can use this command to access it, if you so desire.")
         .addField("events", "Using my top level security clearance to the tower's network, I'm able " +
                             "to access... a calendar! By using this command, I can tell you about " +
                             "any events that might be going on, such as 'Iron Banner' or a 'Faction Rally'.")
@@ -37,6 +39,11 @@ module.exports = {
                              "Seriously... she needs a life.")
         .addField("stats", "See aggregated clan stats for various types of missions. For as much as she " +
                            "says she cares, not even Hawthorn can tell you all of this.");
+    } else if (topic === 'ep') {
+      embed.setTitle("little-light ep help")
+        .setDescription("Access Rasputin's information regarding the current escalation protocol. " +
+                        "Use this command to view what sort of creature we're up against, as well " +
+                        "as what rewards Rasputin is offering.");
     } else if (topic === 'events') {
       embed.setTitle("little-light events help")
         .setDescription("See what events the tower is holding. I guess when guardians are nearly " +
