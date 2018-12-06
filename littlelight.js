@@ -72,6 +72,10 @@ client.on('message', message => {
       bungienetplatform.events(result => {
         sendMessage(channel, result);
       });
+    } else if (params[0] === 'ep') {
+      bungienetplatform.escalationProtocol().then(result => {
+        sendMessage(channel, result.embed);
+      });
     } else if (params[0] === 'updates') {
       // Send link to https://www.bungie.net/en/News/Index?tag=news-updates
       sendMessage(channel, "Updates can be found at https://www.bungie.net/en/News/Index?tag=news-updates");

@@ -95,7 +95,7 @@ module.exports = {
             var definition = definitions[milestone.rewardEntryHash];
             var identifier = definition.rewardEntryIdentifier === "pvp" ? "PvP"
                            : definition.rewardEntryIdentifier.replace(/^\w/, c => c.toUpperCase());
-            var earnedStatus = (milestone.earned ? ":ballot_box_with_check: " : ":x: ")
+            var earnedStatus = (milestone.earned ? ":white_check_mark: " : ":x: ")
                              + definition.displayProperties.description;
 
             embed.addField(identifier, earnedStatus);
@@ -139,6 +139,78 @@ module.exports = {
       }
 
       return callback({ embed: embed });
+    });
+  },
+
+  escalationProtocol: () => {
+    return new Promise((resolve, reject) => {
+      var epInfo = [
+        {
+          shotgun: true,
+          smg: true,
+          sniper: true,
+          boss: "Damkath, The Mask",
+          hint: "Ogre with a nasty Bee Sting on his back. DPS Fight. Mass spawns of Ogres and adds to help distract from the target. " +
+                "Weak point is the bulge on his back."
+        },
+        {
+          shotgun: true,
+          smg: true,
+          sniper: true,
+          boss: "Naksud, The Famine",
+          hint: "Golgoroths more attractive cousin. DPS fight. Weak points on stomach and back. Heals if Cursed Thrall explode in his " +
+                "area so be mindful of these spawning and rushing to help it.\nTips of this is to make use of Tethers in the Pool at " +
+                "the back (Towards the Portal of the Public Event) and also just to the left of the rock in front of the boss to catch " +
+                "the Thrall before they get to him. Also consider launching Grenades / AoE type abilities to prevent them from a clear " +
+                "shot at healing the boss or at least weaken them for easy clean up."
+        },
+        {
+          shotgun: true,
+          smg: false,
+          sniper: false,
+          boss: "Bok Litur, Hunger of Xol",
+          hint: "Warpriest's biggest fan boy. DPS fight. No added mechanics to him besides he likes to run around a lot. Waves of adds " +
+                "come to help distract you. Rinse them and focus the Boss. Using the Spires rock can easily help for cover against this " +
+                "one.\nBe aware of 'Battery Acolytes'. These enemies drop orbs of light when they are killed."
+        },
+        {
+          shotgun: false,
+          smg: true,
+          sniper: false,
+          boss: "Nur Abath, Crest of Xol",
+          hint: "Shielded Ogre. DPS and Shield mechanic. Adds Spawn (Witches, Knights, Ogres) which can help shield the Ogre making him " +
+                "invincible until they are cleared. Good add clearance can help focus more attention on Boss DPS. Methodically going " +
+                "from one to the other as a focus can help."
+        },
+        {
+          shotgun: false,
+          smg: false,
+          sniper: true,
+          boss: "Kathok, Roar of Xol",
+          hint: "Giant Acolyte. DPS Fight and Shield mechanic. Swords are required to take down his shield which will spawn around the " +
+                "area. Make sure to ready your DPS for when the team takes the shield down. Many waves of adds can join the party. Heavy " +
+                "weapons and DPS Combos such as Tractor Cannon / Melting point to working in rotation can help level the boss."
+        }
+      ];
+      var date = new Date();
+      var weekStart = new Date(new Date().setDate(date.getDate() - (date.getDay() - 2) % 7));
+      var weekEnd = new Date(new Date(weekStart).setDate(weekStart.getDate() + 6));
+      var todaysEP = epInfo[Math.floor(date.valueOf() / (1000 * 60 * 60 * 24 * 7) - (date.getDay() < 2 ? 1 : 0)) % 5];
+
+      var embed = new Discord.RichEmbed()
+        .setTitle("Escalation Protocol")
+        .setDescription(weekStart.toDateString() + " - " + weekEnd.toDateString())
+        .setColor(3447003)
+        .addField("Boss", todaysEP.boss)
+        .addField("Available Drops", (todaysEP.shotgun ? ":white_check_mark:" : ":x:") +
+                                     " [IKELOS_SG_v1.0.1](https://db.destinytracker.com/d2/en/items/1887808042-ikelossgv101)\n" +
+                                     (todaysEP.smg ? ":white_check_mark:" : ":x:") +
+                                     " [IKELOS_SMG_v1.0.1](https://db.destinytracker.com/d2/en/items/1723472487-ikelossmgv101)\n" +
+                                     (todaysEP.sniper ? ":white_check_mark:" : ":x:") +
+                                     " [IKELOS_SR_v1.0.1](https://db.destinytracker.com/d2/en/items/847450546-ikelossrv101)")
+        .addField("Tips", todaysEP.hint);
+
+      resolve({ embed: embed });
     });
   },
 
