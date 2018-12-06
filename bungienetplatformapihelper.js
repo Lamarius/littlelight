@@ -250,41 +250,51 @@ module.exports = {
       "I cannot promise I will be here when you return… if you return."
     ];
 
-    getXurFeed().then(data => {
-      if (!data.items || data.items.length === 0) {
-        return callback("I was unable to find any information on xur.");
-      }
+    // getXurFeed().then(data => {
+    //   if (!data.items || data.items.length === 0) {
+    //     return callback("I was unable to find any information on xur.");
+    //   }
 
-      var xurInfo = data.items[0];
-      var xurDate = new Date(xurInfo.pubDate);
-      var xurContent = xurInfo.content.replace(/(\s|\\n)+/g, ' ');
-      if (!newOnly || (xurDate.getDate() === new Date().getDate() && xurContent.contains("<ul>"))) {
-        var quote = xurQuotes[Math.floor(Math.random() * xurQuotes.length)];
-        var embed = new Discord.RichEmbed()
-          .setTitle("Xur: " + xurDate.toDateString())
-          .setDescription(quote)
-          .setColor(0x2E7AC7)
-          //.setImage(update.image)
-          .setURL("https://www.findxur.com");
+    //   var xurInfo = data.items[0];
+    //   var xurDate = new Date(xurInfo.pubDate);
+    //   var xurContent = xurInfo.content.replace(/(\s|\\n)+/g, ' ');
+    //   if (!newOnly || (xurDate.getDate() === new Date().getDate() && xurContent.contains("<ul>"))) {
+    //     var quote = xurQuotes[Math.floor(Math.random() * xurQuotes.length)];
+    //     var embed = new Discord.RichEmbed()
+    //       .setTitle("Xur: " + xurDate.toDateString())
+    //       .setDescription(quote)
+    //       .setColor(0x2E7AC7)
+    //       //.setImage(update.image)
+    //       .setURL("https://www.findxur.com");
 
-        // Get Xur's location and items (if known)
-        if (xurContent.includes("<ul>")) {
-          // Get location description and image. First match gets description, second match gets image url.
-          var locationPattern = /<p>(Xur is .*)<\/p>\s<a href="([^\s]*)"/;
-          var locationInfo = locationPattern.exec(xurContent);
-          embed.addField("Location", "[" + locationInfo[1] + "](" + locationInfo[2] + ")");
-          // Gets item information. First match gets the item url, second match gets the item name, third match gets the item type.
-          var items = /(?:(?:<p>)?\s?<li>\s?(?:<p>)?\s?<a href="([^\s]*)">([\w\s-’]*)<\/a>\s([\[\]\w\s]*)\s?(?:<\/p>)?\s?<\/li>)/g;
-          while ((itemInfo = items.exec(xurContent)) !== null) {
-            embed.addField(itemInfo[2] + " " + itemInfo[3], "[Item stats](" + itemInfo[1] + ")");
-          }
-        } else {
-          embed.addField("Info unavailable", "Xur's current wares and whereabouts are still unknown");
-        }
-        return callback({ embed: embed });
-      }
-      return callback(null);
-    });
+    //     // Get Xur's location and items (if known)
+    //     if (xurContent.includes("<ul>")) {
+    //       // Get location description and image. First match gets description, second match gets image url.
+    //       var locationPattern = /<p>(Xur is .*)<\/p>\s<a href="([^\s]*)"/;
+    //       var locationInfo = locationPattern.exec(xurContent);
+    //       embed.addField("Location", "[" + locationInfo[1] + "](" + locationInfo[2] + ")");
+    //       // Gets item information. First match gets the item url, second match gets the item name, third match gets the item type.
+    //       var items = /(?:(?:<p>)?\s?<li>\s?(?:<p>)?\s?<a href="([^\s]*)">([\w\s-’]*)<\/a>\s([\[\]\w\s]*)\s?(?:<\/p>)?\s?<\/li>)/g;
+    //       while ((itemInfo = items.exec(xurContent)) !== null) {
+    //         embed.addField(itemInfo[2] + " " + itemInfo[3], "[Item stats](" + itemInfo[1] + ")");
+    //       }
+    //     } else {
+    //       embed.addField("Info unavailable", "Xur's current wares and whereabouts are still unknown");
+    //     }
+    //     return callback({ embed: embed });
+    //   }
+    //   return callback(null);
+    // });
+    // The RSS feed was taken down. Will explore this function again at a later date, maybe when xur starts selling new stuff again.
+    var quote = xurQuotes[Math.floor(Math.random() * xurQuotes.length)];
+    var embed = new Discord.RichEmbed()
+      .setTitle("Xur")
+      .setDescription(quote)
+      .setColor(0x2E7AC7)
+      .setURL("https://www.findxur.com")
+      .addField("Info unavailable", "The nine have denied me access to their wares. You'll have to access it manually.");
+
+    return callback({ embed: embed });
   }
 }
 
