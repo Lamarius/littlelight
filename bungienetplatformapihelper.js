@@ -149,14 +149,6 @@ module.exports = {
           shotgun: true,
           smg: true,
           sniper: true,
-          boss: "Damkath, The Mask",
-          hint: "Ogre with a nasty Bee Sting on his back. DPS Fight. Mass spawns of Ogres and adds to help distract from the target. " +
-                "Weak point is the bulge on his back."
-        },
-        {
-          shotgun: true,
-          smg: true,
-          sniper: true,
           boss: "Naksud, The Famine",
           hint: "Golgoroths more attractive cousin. DPS fight. Weak points on stomach and back. Heals if Cursed Thrall explode in his " +
                 "area so be mindful of these spawning and rushing to help it.\nTips of this is to make use of Tethers in the Pool at " +
@@ -166,16 +158,16 @@ module.exports = {
         },
         {
           shotgun: true,
-          smg: false,
-          sniper: false,
+          smg: true,
+          sniper: true,
           boss: "Bok Litur, Hunger of Xol",
           hint: "Warpriest's biggest fan boy. DPS fight. No added mechanics to him besides he likes to run around a lot. Waves of adds " +
                 "come to help distract you. Rinse them and focus the Boss. Using the Spires rock can easily help for cover against this " +
                 "one.\nBe aware of 'Battery Acolytes'. These enemies drop orbs of light when they are killed."
         },
         {
-          shotgun: false,
-          smg: true,
+          shotgun: true,
+          smg: false,
           sniper: false,
           boss: "Nur Abath, Crest of Xol",
           hint: "Shielded Ogre. DPS and Shield mechanic. Adds Spawn (Witches, Knights, Ogres) which can help shield the Ogre making him " +
@@ -184,12 +176,20 @@ module.exports = {
         },
         {
           shotgun: false,
-          smg: false,
-          sniper: true,
+          smg: true,
+          sniper: false,
           boss: "Kathok, Roar of Xol",
           hint: "Giant Acolyte. DPS Fight and Shield mechanic. Swords are required to take down his shield which will spawn around the " +
                 "area. Make sure to ready your DPS for when the team takes the shield down. Many waves of adds can join the party. Heavy " +
                 "weapons and DPS Combos such as Tractor Cannon / Melting point to working in rotation can help level the boss."
+        },
+        {
+          shotgun: false,
+          smg: false,
+          sniper: true,
+          boss: "Damkath, The Mask",
+          hint: "Ogre with a nasty Bee Sting on his back. DPS Fight. Mass spawns of Ogres and adds to help distract from the target. " +
+                "Weak point is the bulge on his back."
         }
       ];
       var date = new Date();
