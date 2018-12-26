@@ -195,7 +195,7 @@ module.exports = {
       var date = new Date();
       var weekStart = new Date(new Date().setDate(date.getDate() - (date.getDay() - 2) % 7));
       var weekEnd = new Date(new Date(weekStart).setDate(weekStart.getDate() + 6));
-      var todaysEP = epInfo[Math.floor(date.valueOf() / (1000 * 60 * 60 * 24 * 7) - (date.getDay() < 2 ? 1 : 0)) % 5];
+      var todaysEP = epInfo[Math.floor(weekStart.valueOf() / (1000 * 60 * 60 * 24 * 7)) % 5];
 
       var embed = new Discord.RichEmbed()
         .setTitle("Escalation Protocol")
