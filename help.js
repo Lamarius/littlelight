@@ -2,7 +2,8 @@ const Discord = require('discord.js');
 
 module.exports = {
   getHelp: (topic) => {
-    var embed = new Discord.RichEmbed().setColor(3447003)
+    var embed = new Discord.RichEmbed().setColor(3447003);
+
     if (!topic) {
       embed.setTitle("little-light general help")
         .setDescription("I am little-light, and I am this discord's ghost. My purpose is to assist " +
@@ -62,6 +63,7 @@ module.exports = {
     } else {
       return "I'm sorry, but I have no information on that topic.";
     }
+
     return {embed: embed};
   }
 }

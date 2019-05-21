@@ -96,6 +96,7 @@ function sendMessage(channel, content, options) {
     console.log('Ignoring empty message.');
     return;
   }
+
   channel.send(content, options)
     .then(message => message.embeds.length > 0
           ? console.log(`Sent embedded message regarding ${message.embeds[0].title}`)
