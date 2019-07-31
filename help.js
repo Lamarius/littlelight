@@ -21,6 +21,11 @@ module.exports = {
         .addField("events", "Using my top level security clearance to the tower's network, I'm able " +
                             "to access... a calendar! By using this command, I can tell you about " +
                             "any events that might be going on, such as 'Iron Banner' or a 'Faction Rally'.")
+        .addField("rankings", "Show those other guardians that you're the best guardian around. Display your " +
+                              "current season's pvp rankings. A parameter is required to use this command. " +
+                              "To use this command, you must supply me with a display name. If this display name " +
+                              "exists on multiple platforms, the platform of choice must also be provided. Ex: " +
+                              "``!ll rankings bigmoist123 xbox``")
         .addField("updates", "Thanks to all the scan patrols, I'm able to keep a log of any changes " +
                              "that happen to our world. By using this command, I can relay those " +
                              "change logs back to you. You may type ``!ll help updates`` " +

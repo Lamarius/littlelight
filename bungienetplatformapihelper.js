@@ -12,50 +12,117 @@ var config = require('./config.js');
 var apiKey = config.apiKey;
 var clanId = config.clanId;
 var currentVersion = '';
-const destinyActivityModeTypes = {
-  0: "None",
-  2: "Story",
-  3: "Strike",
-  4: "Raid",
-  5: "All PvP",
-  6: "Patrol",
-  7: "All PvE",
-  10: "Control",
-  12: "Clash",
-  15: "Crimson Doubles",
-  16: "Nightfall",
-  17: "Heroic Nightfall",
-  18: "All Strikes",
-  19: "Iron Banner",
-  25: "All Mayhem",
-  31: "Supremacy",
-  32: "All Private Matches",
-  37: "Survival",
-  38: "Countdown",
-  39: "Trials of the Nine",
-  40: "Social",
-  41: "Trials Countdown",
-  42: "Trials Survival",
-  43: "Iron Banner Control",
-  44: "Iron Banner Clash",
-  45: "Iron Banner Supremacy",
-  46: "Scored Nightfall",
-  47: "Scored Heroic Nightfall",
-  48: "Rumble",
-  49: "All Doubles",
-  50: "Doubles",
-  51: "Private Matches Clash",
-  52: "Private Matches Control",
-  53: "Private Matches Supremacy",
-  54: "Private Matches Countdown",
-  55: "Private Matches Survival",
-  56: "Private Matches Mayhem",
-  57: "Private Matches Rumble",
-  58: "Heroic Adventure",
-  59: "Showdown",
-  60: "Lockdown",
-  61: "Scorched",
-  62: "Team Scorched"
+//https://bungie-net.github.io/multi/schema_Destiny-HistoricalStats-Definitions-DestinyActivityModeType.html
+const DestinyActivityModeTypes = {
+  0: 'None',
+  2: 'Story',
+  3: 'Strike',
+  4: 'Raid',
+  5: 'All PvP',
+  6: 'Patrol',
+  7: 'All PvE',
+  10: 'Control',
+  12: 'Clash',
+  15: 'Crimson Doubles',
+  16: 'Nightfall',
+  17: 'Heroic Nightfall',
+  18: 'All Strikes',
+  19: 'Iron Banner',
+  25: 'All Mayhem',
+  31: 'Supremacy',
+  32: 'All Private Matches',
+  37: 'Survival',
+  38: 'Countdown',
+  39: 'Trials of the Nine',
+  40: 'Social',
+  41: 'Trials Countdown',
+  42: 'Trials Survival',
+  43: 'Iron Banner Control',
+  44: 'Iron Banner Clash',
+  45: 'Iron Banner Supremacy',
+  46: 'Scored Nightfall',
+  47: 'Scored Heroic Nightfall',
+  48: 'Rumble',
+  49: 'All Doubles',
+  50: 'Doubles',
+  51: 'Private Matches Clash',
+  52: 'Private Matches Control',
+  53: 'Private Matches Supremacy',
+  54: 'Private Matches Countdown',
+  55: 'Private Matches Survival',
+  56: 'Private Matches Mayhem',
+  57: 'Private Matches Rumble',
+  58: 'Heroic Adventure',
+  59: 'Showdown',
+  60: 'Lockdown',
+  61: 'Scorched',
+  62: 'Team Scorched',
+  63: 'Gambit',
+  64: 'All PvE Competitive',
+  65: 'Breakthrough',
+  66: 'Black Armory Run',
+  67: 'Salvage',
+  68: 'Iron Banner Salvage',
+  69: 'PvP Competitive',
+  70: 'PvP Quickplay',
+  71: 'Clash Quickplay',
+  72: 'Clash Competitive',
+  73: 'Control Quickplay',
+  74: 'Control Competivive',
+  75: 'Gambit Prime',
+  76: 'Reckoning',
+  77: 'Menagerie'
+};
+//https://bungie-net.github.io/multi/schema_BungieMembershipType.html#schema_BungieMembershipType
+const BungieMembershipTypes = {
+  none: 0,
+  xbox: 1,
+  psn: 2,
+  steam: 3,
+  blizzard: 4,
+  stadia: 5,
+  demon: 10,
+  bungienext: 254,
+  all: -1
+};
+// I didn't see any documentation on what hashes are for what, so trial and error here.
+const ProgressionHashes = {
+  Glory: 2679551909,
+  Infamy: 2772425241,
+  Valor: 3882308435
+};
+//https://bungie-net.github.io/multi/schema_Destiny-DestinyComponentType.html#schema_Destiny-DestinyComponentType
+const DestinyComponentTypes = {
+  None: 0,
+  Profiles: 100,
+  VendorReceipts: 101,
+  ProfileInventories: 102,
+  ProfileCurrencies: 103,
+  ProfileProgression: 104,
+  PlatformSilver: 105,
+  Characters: 200,
+  CharacterInventories: 201,
+  CharacterProgressions: 202, // Use this one for crucible, gambit, etc.
+  CharacterRendorData: 203,
+  CharacterActivities: 204,
+  CharacterEquipment: 205,
+  ItemInstances: 300,
+  ItemObjectives: 301,
+  ItemPerks: 302,
+  ItemRenderData: 303,
+  ItemStats: 304,
+  ItemSockets: 305,
+  ItemTalentGrids: 306,
+  ItemCommonData: 307,
+  ItemPlugStates: 308,
+  Vendors: 400,
+  VendorCategories: 401,
+  VendorSales: 402,
+  Kiosks: 500,
+  CurrencyLookups: 600,
+  PresentationNodes: 700,
+  Collectibles: 800,
+  Records: 900
 };
 
 module.exports = {
@@ -130,7 +197,7 @@ module.exports = {
       });
 
       for (var gamemodeId in stats) {
-        var gamemode = destinyActivityModeTypes[gamemodeId];
+        var gamemode = DestinyActivityModeTypes[gamemodeId];
         var message = "";
 
         for (var statId in stats[gamemodeId]) {
@@ -215,7 +282,7 @@ module.exports = {
                                      (todaysEP.sniper ? "\n:white_check_mark: " : "\n:x: ") + sniperLink)
         .addField("Tips", todaysEP.hint);
 
-      resolve({ embed: embed });
+      resolve(embed);
     });
   },
 
@@ -284,6 +351,45 @@ module.exports = {
           }
         }
       }
+    });
+  },
+
+  rankings: (username, membershipType) => {
+    var platformId = membershipType ? BungieMembershipTypes[membershipType] : -1;
+    var displayName = username;
+    return new Promise((resolve, reject) => {
+      var searchPromise = apiSearchDestinyPlayer(platformId, username).then(data => {
+        if (data && data.ErrorCode === 1 && data.Response.length > 0) {
+          if (data.Response.length === 1) {
+            var membershipType = data.Response[0].membershipType;
+            var membershipId = data.Response[0].membershipId;
+            displayName = data.Response[0].displayName;
+            return apiProfileCall(membershipType, membershipId, [DestinyComponentTypes.CharacterProgressions]);
+          } else {
+            resolve('Multiple users found. Please restrict your search to a specific platform.');
+          }
+        } else {
+          resolve('Unable to locate user.');
+        }
+      }).then(data => {
+        if (data && data.ErrorCode === 1) {
+          var characterProgressions = data.Response.characterProgressions;
+          var accountProgressions = characterProgressions.data[Object.keys(characterProgressions.data)[0]].progressions;
+          var valor = accountProgressions[ProgressionHashes.Valor];
+          var infamy = accountProgressions[ProgressionHashes.Infamy];
+          var glory = accountProgressions[ProgressionHashes.Glory];
+          var embed = new Discord.RichEmbed()
+            .setTitle('Rankings')
+            .setDescription(displayName + "'s ranks for this season")
+            .addField('Valor (' + valor.currentResetCount + ' resets)', valor.currentProgress)
+            .addField('Glory (' + glory.currentResetCount + ' resets)', glory.currentProgress)
+            .addField('Infamy (' + infamy.currentResetCount + ' resets)', infamy.currentProgress);
+
+          resolve(embed);
+        } else {
+          resolve('Unable to get rankings.');
+        }
+      });
     });
   },
 
@@ -432,6 +538,23 @@ function apiEventDetailsCall(type, id, callback) {
 function apiMilestoneDefinitionCall(milestoneHash, callback) {
   apiCall("/Destiny2/Manifest/DestinyMilestoneDefinition/" + milestoneHash + "/", "GET", data => {
     return callback(data);
+  });
+}
+
+function apiProfileCall(platformId, profileId, componentTypes) {
+  var components = typeof componentTypes === 'string' ? componentTypes : componentTypes.join();
+  return new Promise((resolve, reject) => {
+    apiCall('/Destiny2/' + platformId + '/Profile/' + profileId + '/?components=' + components, 'GET', data => {
+      resolve(data);
+    });
+  });
+}
+
+function apiSearchDestinyPlayer(platformId, username) {
+  return new Promise((resolve, reject) => {
+    apiCall('/Destiny2/SearchDestinyPlayer/' + platformId + '/' + username + '/', 'GET', data => {
+      resolve(data);
+    });
   });
 }
 

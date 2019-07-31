@@ -38,7 +38,7 @@ client.on('ready', () => {
   });
 
   // Set bot to show help command
-  client.user.setGame('!ll help');
+  client.user.setActivity('!ll help');
 });
 
 // Create an event listener for messages
@@ -74,7 +74,7 @@ client.on('message', message => {
       });
     } else if (params[0] === 'ep') {
       bungienetplatform.escalationProtocol().then(result => {
-        sendMessage(channel, result.embed);
+        sendMessage(channel, result);
       });
     } else if (params[0] === 'updates') {
       // Send link to https://www.bungie.net/en/News/Index?tag=news-updates
@@ -82,6 +82,10 @@ client.on('message', message => {
     } else if (params[0] === 'help') {
       // Get help
       sendMessage(channel, help.getHelp(params[1]));
+    } else if (params[0] === 'rankings') {
+      bungienetplatform.rankings(params[1], params[2]).then(result => {
+        sendMessage(channel, result);
+      });
     } else if (params[0] === 'xur') {
       // Get xur's last/current location
       bungienetplatform.xur(false, result => {
